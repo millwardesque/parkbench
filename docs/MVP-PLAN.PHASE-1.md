@@ -46,7 +46,7 @@ subsequent phases can focus on features, not plumbing.
     Remix `root.tsx`.
 3.  (**WBS-2.3**) ✅ Set up Vitest with `@testing-library/react` and configure
     `npm run test`.
-4.  (**WBS-2.4**) Install Cypress and add basic smoke E2E test placeholder.
+4.  (**WBS-2.4**) ✅ Install Cypress and add basic smoke E2E test placeholder.
 
 ### 3.3 Prisma & Database (WBS-3)
 
