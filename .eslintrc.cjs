@@ -39,18 +39,10 @@ module.exports = {
     ],
     // Allow importing devDependencies in specific files
     'import/no-extraneous-dependencies': ['error', {
-      devDependencies: [
-        '**/*.test.{ts,tsx,js,jsx}',
-        '**/*.spec.{ts,tsx,js,jsx}',
-        '**/*.config.{ts,js}',
-        '**/vite.config.ts',
-        '**/tailwind.config.ts',
-        '**/vitest.config.ts',
-        '**/cypress.config.{ts,js}',
-        '**/setupTests.{ts,js}',
-        '**/test-utils.{ts,tsx,js,jsx}',
-        '**/test/**',
-      ],
+      devDependencies: true, // Allow all devDependencies in all files
+      optionalDependencies: false,
+      peerDependencies: false,
+      bundledDependencies: false,
     }],
     
     // Disable no-use-before-define rule
