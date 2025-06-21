@@ -34,17 +34,17 @@ subsequent phases can focus on features, not plumbing.
 ### 3.1 Repository & Project Setup (WBS-1)
 
 1.  (**WBS-1.1**) ✅ Remote Git repo `parkbench` exists with docs (completed).
-2.  (**WBS-1.2**) Run `npx create-remix@latest` with Vite + TypeScript.
-3.  (**WBS-1.3**) Add `.gitignore` (use Remix/Vite template + OS artifacts).
-4.  (**WBS-1.4**) Configure `pre-commit` with **lint-staged** to run prettier
+2.  (**WBS-1.2**) ✅ Run `npx create-remix@latest` with Vite + TypeScript.
+3.  (**WBS-1.3**) ✅ Add `.gitignore` (use Remix/Vite template + OS artifacts).
+4.  (**WBS-1.4**) ✅ Configure `pre-commit` with **lint-staged** to run prettier
     and eslint.
 
 ### 3.2 Tooling Configuration (WBS-2)
 
-1.  (**WBS-2.1**) Add ESLint (Airbnb config) and Prettier.
-2.  (**WBS-2.2**) Add Tailwind ◦ generate `tailwind.config.ts` and include in
+1.  (**WBS-2.1**) ✅ Add ESLint (Airbnb config) and Prettier.
+2.  (**WBS-2.2**) ✅ Add Tailwind ◦ generate `tailwind.config.ts` and include in
     Remix `root.tsx`.
-3.  (**WBS-2.3**) Set up Vitest with `@testing-library/react` and configure
+3.  (**WBS-2.3**) ✅ Set up Vitest with `@testing-library/react` and configure
     `npm run test`.
 4.  (**WBS-2.4**) Install Cypress and add basic smoke E2E test placeholder.
 

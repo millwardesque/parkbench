@@ -49,6 +49,7 @@ module.exports = {
         '**/cypress.config.{ts,js}',
         '**/setupTests.{ts,js}',
         '**/test-utils.{ts,tsx,js,jsx}',
+        '**/test/**',
       ],
     }],
     
