@@ -67,18 +67,18 @@ subsequent phases can focus on features, not plumbing.
 
 ### 3.4 Seed & Dev Utilities (WBS-4)
 
-1.  (**WBS-4.1**) Create `scripts/seed.ts` using Prisma Client.
-2.  (**WBS-4.2**) Insert seed data listed in D5.
-3.  (**WBS-4.3**) Add `npm run db:reset` script: drop DB, run migrate, seed.
+1.  (**WBS-4.1**) ✅ Create `scripts/seed.ts` using Prisma Client.
+2.  (**WBS-4.2**) ✅ Insert seed data listed in D5.
+3.  (**WBS-4.3**) ✅ Add `npm run db:reset` script: drop DB, run migrate, seed.
 
 ### 3.5 Verification & CI (WBS-5)
 
-1.  (**WBS-5.1**) Add GitHub Actions workflow `ci.yml` running:
+1.  (**WBS-5.1**) ✅ Add GitHub Actions workflow `ci.yml` running:
     - `npm ci`
     - `npm run lint`
     - `npm run typecheck`
     - `npm run test -- --run` (Vitest)
-2.  (**WBS-5.2**) Ensure workflow passes on main branch.
+2.  (**WBS-5.2**) ✅ Ensure workflow passes on main branch.
 
 ## 4. Timeline (1 week target)
 
