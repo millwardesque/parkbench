@@ -37,14 +37,6 @@ module.exports = {
         tsx: 'never',
       },
     ],
-    // Allow importing devDependencies in specific files
-    'import/no-extraneous-dependencies': ['error', {
-      devDependencies: true, // Allow all devDependencies in all files
-      optionalDependencies: false,
-      peerDependencies: false,
-      bundledDependencies: false,
-    }],
-    
     // Disable no-use-before-define rule
     'no-use-before-define': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
@@ -97,6 +89,42 @@ module.exports = {
         "plugin:import/recommended",
         "plugin:import/typescript",
       ],
+      rules: {
+        'import/no-extraneous-dependencies': ['error', {
+          devDependencies: [
+            '**/*.test.ts',
+            '**/*.test.tsx',
+            '**/*.spec.ts',
+            '**/*.spec.tsx',
+            'test/**/*',
+            'cypress/**/*',
+            './*.js',
+            './*.ts',
+            'scripts/**/*',
+          ],
+          optionalDependencies: false,
+          peerDependencies: false,
+          packageDir: './',
+        }],
+      },
+    },
+
+    // Global type declarations
+    {
+      files: ["**/*.d.ts"],
+      rules: {
+        "no-var": "off",
+        "vars-on-top": "off",
+      },
+    },
+
+    // Seed script
+    {
+      files: ["scripts/seed.ts"],
+      rules: {
+        "no-console": "off",
+        "import/no-extraneous-dependencies": "off",
+      },
     },
 
     // Node

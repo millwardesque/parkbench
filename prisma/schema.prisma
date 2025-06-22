@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Common model fields and configuration
+// Shared timestamp fields added to all models
+model User {
+  id         String    @id @default(uuid())
+  name       String
+  email      String    @unique
+  created_at DateTime  @default(now()) @map("created_at")
+  updated_at DateTime  @updatedAt @map("updated_at")
+  deleted_at DateTime? @map("deleted_at")
+  
+  // Relations
+  visitors   Visitor[]
+
+  @@map("users")
+  @@index([deleted_at])
+}
+
+model Visitor {
+  id         String    @id @default(uuid())
+  name       String
+  owner_id   String    @map("owner_id")
+  created_at DateTime  @default(now()) @map("created_at")
+  updated_at DateTime  @updatedAt @map("updated_at")
+  deleted_at DateTime? @map("deleted_at")
+  
+  // Relations
+  owner      User      @relation(fields: [owner_id], references: [id])
+  checkins   Checkin[]
+
+  @@map("visitors")
+  @@index([deleted_at])
+  @@index([owner_id])
+}
+
+model Location {
+  id         String    @id @default(uuid())
+  name       String
+  nickname   String?
+  created_at DateTime  @default(now()) @map("created_at")
+  updated_at DateTime  @updatedAt @map("updated_at")
+  deleted_at DateTime? @map("deleted_at")
+  
+  // Relations
+  checkins   Checkin[]
+
+  @@map("locations")
+  @@index([deleted_at])
+}
+
+model Checkin {
+  id                String    @id @default(uuid())
+  visitor_id        String    @map("visitor_id")
+  location_id       String    @map("location_id")
+  checkin_at        DateTime  @map("checkin_at")
+  est_checkout_at   DateTime  @map("est_checkout_at")
+  actual_checkout_at DateTime? @map("actual_checkout_at")
+  created_at        DateTime  @default(now()) @map("created_at")
+  updated_at        DateTime  @updatedAt @map("updated_at")
+  deleted_at        DateTime? @map("deleted_at")
+  
+  // Relations
+  visitor    Visitor   @relation(fields: [visitor_id], references: [id])
+  location   Location  @relation(fields: [location_id], references: [id])
+
+  @@map("checkins")
+  @@index([deleted_at])
+  @@index([visitor_id, actual_checkout_at])
+  // Ensure a visitor can only be checked in at one place at a time
+  @@unique([visitor_id, actual_checkout_at], name: "visitor_active_checkin")
+}

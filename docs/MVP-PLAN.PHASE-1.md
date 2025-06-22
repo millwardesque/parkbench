@@ -50,9 +50,9 @@ subsequent phases can focus on features, not plumbing.
 
 ### 3.3 Prisma & Database (WBS-3)
 
-1.  (**WBS-3.1**) Install Prisma CLI and generate `schema.prisma`.
-2.  (**WBS-3.2**) Model common fields via `@@map` + model-level `@@index`s.
-3.  (**WBS-3.3**) Define models:
+1.  (**WBS-3.1**) ✅ Install Prisma CLI and generate `schema.prisma`.
+2.  (**WBS-3.2**) ✅ Model common fields via `@@map` + model-level `@@index`s.
+3.  (**WBS-3.3**) ✅ Define models:
 
     - `User` – id (UUID), name, email (unique), timestamps, `deleted_at`.
     - `Visitor` – id, name, `owner_id` → `User`.
@@ -62,8 +62,8 @@ subsequent phases can focus on features, not plumbing.
       - Unique composite on (`visitor_id`, `actual_checkout_at`=`NULL`).
       - Index on (`visitor_id`, `actual_checkout_at`).
 
-4.  (**WBS-3.4**) Create migration `001_init` and run `prisma migrate dev`.
-5.  (**WBS-3.5**) Add global Prisma middleware to exclude soft-deleted rows.
+4.  (**WBS-3.4**) ✅ Create migration `001_init` and run `prisma migrate dev`.
+5.  (**WBS-3.5**) ✅ Add global Prisma middleware to exclude soft-deleted rows.
 
 ### 3.4 Seed & Dev Utilities (WBS-4)
 
