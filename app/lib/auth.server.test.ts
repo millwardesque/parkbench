@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { execSync } from 'child_process';
 import prisma from '~/utils/db.server';
@@ -15,8 +16,11 @@ vi.mock('~/services/email.server', () => ({
 // Get a reference to the mocked function
 const sendEmail = vi.mocked(emailModule.default);
 
-// Before each test, reset the database to a clean state.
+// Before each test, reset the database and mocks to a clean state.
 beforeEach(() => {
+  // Clear mock history before each test
+  vi.clearAllMocks();
+
   // Use a separate test database.
   process.env.DATABASE_URL = 'file:./test.db';
   // The --force flag is needed for non-interactive environments.
@@ -96,9 +100,11 @@ describe('Authentication Utilities', () => {
       const token = tokenMatch ? tokenMatch[1] : null;
       expect(token).toBeDefined();
 
+      const tokenHash = createHash('sha256').update(token!).digest('hex');
+
       // Token should be saved in the database
-      const savedToken = await prisma.magicLinkToken.findFirst({
-        where: { email },
+      const savedToken = await prisma.magicLinkToken.findUnique({
+        where: { token_hash: tokenHash },
       });
       expect(savedToken).toBeDefined();
 
