@@ -10,6 +10,20 @@ Run the dev server:
 npm run dev
 ```
 
+### Environment Variables
+
+This project uses `dotenv-safe` to manage environment variables. This ensures that all required variables are present before the application starts.
+
+1.  **Create a `.env` file**: Copy the example file `.env.example` to a new file named `.env` in the project root.
+
+    ```sh
+    cp .env.example .env
+    ```
+
+2.  **Fill in the values**: Edit the `.env` file to include the necessary values for your local environment (e.g., your `DATABASE_URL`).
+
+The `.env` file is included in `.gitignore` and should never be committed to version control.
+
 ## Deployment
 
 First, build your app for production:

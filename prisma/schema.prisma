@@ -80,3 +80,18 @@ model Checkin {
   // Ensure a visitor can only be checked in at one place at a time
   @@unique([visitor_id, actual_checkout_at], name: "visitor_active_checkin")
 }
+
+model MagicLinkToken {
+  id         String    @id @default(uuid())
+  token_hash String    @unique @map("token_hash")
+  email      String // The email the link was sent to
+  expires_at DateTime  @map("expires_at")
+  used_at    DateTime? @map("used_at") // To mark the token as used
+  created_at DateTime  @default(now()) @map("created_at")
+  updated_at DateTime  @updatedAt @map("updated_at")
+  deleted_at DateTime? @map("deleted_at")
+
+  @@map("magic_link_tokens")
+  @@index([deleted_at])
+  @@index([email])
+}
