@@ -101,5 +101,53 @@ describe('/profile/visitors route', () => {
         },
       });
     });
+
+    it('should update a visitor', async () => {
+      const testUserId = 'user-123';
+      mockedRequireUserId.mockResolvedValue(testUserId);
+
+      const formData = new FormData();
+      formData.append('intent', 'update');
+      formData.append('name', 'Updated Visitor');
+      formData.append('visitorId', 'visitor-1');
+
+      const request = new Request('http://localhost/profile/visitors', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const response = await action({ request, params: {}, context: {} });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.ok).toBe(true);
+      expect(mockedPrisma.visitor.updateMany).toHaveBeenCalledWith({
+        where: { id: 'visitor-1', owner_id: testUserId },
+        data: { name: 'Updated Visitor' },
+      });
+    });
+
+    it('should delete a visitor', async () => {
+      const testUserId = 'user-123';
+      mockedRequireUserId.mockResolvedValue(testUserId);
+
+      const formData = new FormData();
+      formData.append('intent', 'delete');
+      formData.append('visitorId', 'visitor-1');
+
+      const request = new Request('http://localhost/profile/visitors', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const response = await action({ request, params: {}, context: {} });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.ok).toBe(true);
+      expect(mockedPrisma.visitor.deleteMany).toHaveBeenCalledWith({
+        where: { id: 'visitor-1', owner_id: testUserId },
+      });
+    });
   });
 });
