@@ -1,13 +1,30 @@
 import {
+  json,
+  type LinksFunction,
+  type LoaderFunctionArgs,
+} from '@remix-run/node';
+import {
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from '@remix-run/react';
-import type { LinksFunction } from '@remix-run/node';
+import { AuthenticityTokenProvider } from 'remix-utils/csrf/react';
+
+import { csrf } from '~/utils/session.server';
 
 import './tailwind.css';
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const [token, cookieHeader] = await csrf.commitToken(request);
+  const headers = new Headers();
+  if (cookieHeader) {
+    headers.set('Set-Cookie', cookieHeader);
+  }
+  return json({ csrf: token }, { headers });
+}
 
 export const links: LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -41,5 +58,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  const { csrf: token } = useLoaderData<typeof loader>();
+
+  return (
+    <Layout>
+      <AuthenticityTokenProvider token={token}>
+        <Outlet />
+      </AuthenticityTokenProvider>
+    </Layout>
+  );
 }

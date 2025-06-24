@@ -4,11 +4,12 @@ import {
   type LoaderFunctionArgs,
 } from '@remix-run/node';
 import { Form, useLoaderData, useFetcher } from '@remix-run/react';
+import { useAuthenticityToken } from 'remix-utils/csrf/react';
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
 
 import prisma from '~/utils/db.server';
-import { requireUserId } from '~/utils/session.server';
+import { requireUserId, validateCsrfToken } from '~/utils/session.server';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUserId(request);
@@ -24,6 +25,7 @@ const VisitorSchema = z.object({
 });
 
 export async function action({ request }: ActionFunctionArgs) {
+  await validateCsrfToken(request);
   const userId = await requireUserId(request);
   const formData = await request.formData();
   const intent = formData.get('intent');
@@ -83,6 +85,7 @@ export default function VisitorsRoute() {
   const [editingVisitorId, setEditingVisitorId] = useState<string | null>(null);
 
   const fetcher = useFetcher<{ ok: boolean }>();
+  const csrf = useAuthenticityToken();
 
   useEffect(() => {
     if (fetcher.state === 'idle' && fetcher.data?.ok) {
@@ -94,7 +97,8 @@ export default function VisitorsRoute() {
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-semibold">Add a new visitor</h3>
-        <Form method="post" className="mt-2 flex items-center gap-4">
+        <Form method="post" className="flex items-center gap-4">
+          <input type="hidden" name="csrf" value={csrf} />
           <input type="hidden" name="intent" value="create" />
           <label htmlFor="name" className="flex-grow">
             <span className="sr-only">Visitor Name</span>
@@ -129,6 +133,7 @@ export default function VisitorsRoute() {
                     method="post"
                     className="flex items-center gap-2"
                   >
+                    <input type="hidden" name="csrf" value={csrf} />
                     <input type="hidden" name="intent" value="update" />
                     <input type="hidden" name="visitorId" value={visitor.id} />
                     <div className="flex-grow">
@@ -174,6 +179,7 @@ export default function VisitorsRoute() {
                       Edit
                     </button>
                     <Form method="post">
+                      <input type="hidden" name="csrf" value={csrf} />
                       <input type="hidden" name="intent" value="delete" />
                       <input
                         type="hidden"

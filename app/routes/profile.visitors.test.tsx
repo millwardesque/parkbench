@@ -18,10 +18,11 @@ vi.mock('~/utils/db.server', () => ({
 // Mock session
 vi.mock('~/utils/session.server', () => ({
   requireUserId: vi.fn(),
+  validateCsrfToken: vi.fn(),
 }));
 
 const mockedRequireUserId = vi.mocked(requireUserId);
-const mockedPrisma = vi.mocked(prisma);
+const mockedPrisma = vi.mocked(prisma, true);
 
 describe('/profile/visitors route', () => {
   beforeEach(() => {
@@ -32,8 +33,22 @@ describe('/profile/visitors route', () => {
     it('should return visitors for an authenticated user', async () => {
       const testUserId = 'user-123';
       const testVisitors = [
-        { id: 'visitor-1', name: 'Visitor A', owner_id: testUserId },
-        { id: 'visitor-2', name: 'Visitor B', owner_id: testUserId },
+        {
+          id: 'visitor-1',
+          name: 'Visitor A',
+          owner_id: testUserId,
+          created_at: new Date(),
+          updated_at: new Date(),
+          deleted_at: null,
+        },
+        {
+          id: 'visitor-2',
+          name: 'Visitor B',
+          owner_id: testUserId,
+          created_at: new Date(),
+          updated_at: new Date(),
+          deleted_at: null,
+        },
       ];
 
       mockedRequireUserId.mockResolvedValue(testUserId);
@@ -44,7 +59,13 @@ describe('/profile/visitors route', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.visitors).toEqual(testVisitors);
+      expect(data.visitors).toEqual(
+        testVisitors.map((v) => ({
+          ...v,
+          created_at: v.created_at.toISOString(),
+          updated_at: v.updated_at.toISOString(),
+        }))
+      );
       expect(mockedPrisma.visitor.findMany).toHaveBeenCalledWith({
         where: { owner_id: testUserId },
         orderBy: { name: 'asc' },
@@ -90,7 +111,7 @@ describe('/profile/visitors route', () => {
       });
 
       const response = await action({ request, params: {}, context: {} });
-      const data = await response.json();
+      const data = (await response.json()) as { ok: boolean };
 
       expect(response.status).toBe(200);
       expect(data.ok).toBe(true);
@@ -117,7 +138,7 @@ describe('/profile/visitors route', () => {
       });
 
       const response = await action({ request, params: {}, context: {} });
-      const data = await response.json();
+      const data = (await response.json()) as { ok: boolean };
 
       expect(response.status).toBe(200);
       expect(data.ok).toBe(true);
@@ -141,7 +162,7 @@ describe('/profile/visitors route', () => {
       });
 
       const response = await action({ request, params: {}, context: {} });
-      const data = await response.json();
+      const data = (await response.json()) as { ok: boolean };
 
       expect(response.status).toBe(200);
       expect(data.ok).toBe(true);

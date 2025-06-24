@@ -1,8 +1,9 @@
-import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node';
+import { json, type LoaderFunctionArgs } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import { z } from 'zod';
 import prisma from '~/utils/db.server';
 import { verifyMagicLinkToken } from '~/lib/auth.server';
+import { createUserSession } from '~/utils/session.server';
 
 // Schema to validate the query parameters
 const MagicLinkQuerySchema = z.object({
@@ -37,12 +38,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return json({ error: 'User not found.' }, { status: 404 });
   }
 
-  // TODO: Create a user session and set the session cookie (WBS-9.1)
-  // Will log user authentication after session implementation
-  // User ${user.id} successfully authenticated
-
-  // For now, we'll just redirect to a placeholder profile page.
-  return redirect('/profile');
+  return createUserSession(user.id, '/profile');
 }
 
 export default function AuthMagicRoute() {

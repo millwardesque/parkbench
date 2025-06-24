@@ -1,7 +1,6 @@
 import {
   createCookie,
   createCookieSessionStorage,
-  type Session,
   redirect,
 } from '@remix-run/node';
 import { CSRF } from 'remix-utils/csrf/server';
@@ -75,18 +74,14 @@ export async function createUserSession(userId: string, redirectTo: string) {
   });
 }
 
-export const csrf = new CSRF({
-  cookie,
-  // The name of the form input that will contain the CSRF token.
-  formDataKey: 'csrf',
-});
+export const csrf = new CSRF({ cookie });
 
 /**
  * A helper function to validate the CSRF token.
  * @param request The request object.
- * @param session The session object.
  * @throws {Response} If the CSRF token is invalid.
  */
-export async function validateCSRF(request: Request, session: Session) {
-  await csrf.validate(request, session);
+export async function validateCsrfToken(request: Request) {
+  const formData = await request.clone().formData();
+  await csrf.validate(formData, request.headers);
 }
