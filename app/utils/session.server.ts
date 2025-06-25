@@ -5,7 +5,6 @@ import {
 } from '@remix-run/node';
 import { CSRF } from 'remix-utils/csrf/server';
 
-// TODO: Add SESSION_SECRET to .env
 const sessionSecret = process.env.SESSION_SECRET ?? 'development-secret';
 
 if (!sessionSecret) {
@@ -51,9 +50,10 @@ export async function requireUserId(
   redirectTo: string = new URL(request.url).pathname
 ) {
   const userId = await getUserId(request);
+  console.log('[CPM] requireUserId: ', request); // @DEBUG
   if (!userId) {
     const searchParams = new URLSearchParams([['redirectTo', redirectTo]]);
-    throw redirect(`/sign-in?${searchParams}`);
+    throw redirect(`/auth/signin?${searchParams}`);
   }
   return userId;
 }
@@ -74,14 +74,44 @@ export async function createUserSession(userId: string, redirectTo: string) {
   });
 }
 
+export async function logout(request: Request) {
+  const session = await sessionStorage.getSession(
+    request.headers.get('Cookie')
+  );
+  return redirect('/auth/signin', {
+    headers: {
+      'Set-Cookie': await sessionStorage.destroySession(session),
+    },
+  });
+}
+
 export const csrf = new CSRF({ cookie });
 
 /**
  * A helper function to validate the CSRF token.
- * @param request The request object.
+ * @param formDataOrRequest The form data or request object.
+ * @param headers Optional headers if formData is provided.
  * @throws {Response} If the CSRF token is invalid.
  */
-export async function validateCsrfToken(request: Request) {
-  const formData = await request.clone().formData();
-  await csrf.validate(formData, request.headers);
+export async function validateCsrfToken(
+  formDataOrRequest: FormData | Request,
+  headers?: Headers
+) {
+  if (formDataOrRequest instanceof FormData) {
+    // If FormData is provided, headers must also be provided
+    if (!headers) {
+      throw new Error('Headers must be provided when using FormData');
+    }
+    console.log('[CPM] validateCsrfToken (FormData): ', formDataOrRequest); // @DEBUG
+    await csrf.validate(formDataOrRequest, headers);
+  } else {
+    // Legacy behavior: read from request
+    const formData = await formDataOrRequest.clone().formData();
+    console.log(
+      '[CPM] validateCsrfToken (Request): ',
+      formData,
+      formDataOrRequest
+    ); // @DEBUG
+    await csrf.validate(formData, formDataOrRequest.headers);
+  }
 }

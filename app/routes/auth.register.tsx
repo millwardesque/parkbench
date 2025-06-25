@@ -41,11 +41,15 @@ export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
   const submission = parseWithZod(formData, { schema: RegisterSchema });
 
+  console.log('[CPM] action: ', submission, request); // @DEBUG
+
   if (submission.status !== 'success') {
     return json(submission.reply());
   }
 
   const { name, email, visitors } = submission.value;
+
+  console.log('[CPM] action2: ', submission, request); // @DEBUG
 
   try {
     // `visitors` is now guaranteed to be a string[] by the schema transform.

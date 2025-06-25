@@ -82,6 +82,12 @@ export async function sendMagicLink(request: Request, email: string) {
   magicLink.searchParams.set('token', token);
   magicLink.searchParams.set('email', email); // For easier lookup on the callback
 
+  // In development, log the magic link to the console
+  if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.log(`\n✨ Magic Link: ${magicLink.toString()}\n`);
+  }
+
   await sendEmail({
     to: email,
     subject: 'Your Parkbench Magic Link',
