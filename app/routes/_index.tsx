@@ -1,11 +1,11 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/node';
 import { Form, Link, useLoaderData } from '@remix-run/react';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';
+import { useState } from 'react';
 import { requireUserId } from '~/utils/session.server';
 import prisma from '~/utils/db.server';
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  console.log('[CPM] loader: ', request); // @DEBUG
   const userId = await requireUserId(request);
   const [locations, visitors] = await Promise.all([
     prisma.location.findMany({
@@ -30,6 +30,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function Index() {
   const { locations, visitors } = useLoaderData<typeof loader>();
   const csrf = useAuthenticityToken();
+  const [selectedLocations, setSelectedLocations] = useState<
+    Record<string, string>
+  >({});
 
   const visitorCheckinMap = new Map<string, string | null>();
   visitors.forEach((visitor) => {
@@ -135,7 +138,13 @@ export default function Index() {
                             />
                             <select
                               name="locationId"
-                              defaultValue=""
+                              value={selectedLocations[visitor.id] || ''}
+                              onChange={(e) =>
+                                setSelectedLocations((prev) => ({
+                                  ...prev,
+                                  [visitor.id]: e.target.value,
+                                }))
+                              }
                               className="text-sm rounded-md border-gray-300"
                             >
                               <option value="" disabled>
@@ -149,7 +158,8 @@ export default function Index() {
                             </select>
                             <button
                               type="submit"
-                              className="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                              disabled={!selectedLocations[visitor.id]}
+                              className="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-green-300 disabled:cursor-not-allowed"
                             >
                               Check In
                             </button>

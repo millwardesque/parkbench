@@ -11,16 +11,25 @@ if (!sessionSecret) {
   throw new Error('SESSION_SECRET must be set');
 }
 
-const cookie = createCookie('parkbench_session', {
+const sessionCookie = createCookie('parkbench_session', {
   httpOnly: true,
   path: '/',
   sameSite: 'lax',
-  secrets: [process.env.SESSION_SECRET!],
+  secrets: [sessionSecret],
   secure: process.env.NODE_ENV === 'production',
 });
 
+// The cookie used for CSRF tokens.
+const csrfCookie = createCookie('csrf', {
+  path: '/',
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax',
+  secrets: [sessionSecret],
+});
+
 export const sessionStorage = createCookieSessionStorage({
-  cookie,
+  cookie: sessionCookie,
 });
 
 const USER_SESSION_KEY = 'userId';
@@ -50,7 +59,6 @@ export async function requireUserId(
   redirectTo: string = new URL(request.url).pathname
 ) {
   const userId = await getUserId(request);
-  console.log('[CPM] requireUserId: ', request); // @DEBUG
   if (!userId) {
     const searchParams = new URLSearchParams([['redirectTo', redirectTo]]);
     throw redirect(`/auth/signin?${searchParams}`);
@@ -85,7 +93,7 @@ export async function logout(request: Request) {
   });
 }
 
-export const csrf = new CSRF({ cookie });
+export const csrf = new CSRF({ cookie: csrfCookie });
 
 /**
  * A helper function to validate the CSRF token.
@@ -102,16 +110,10 @@ export async function validateCsrfToken(
     if (!headers) {
       throw new Error('Headers must be provided when using FormData');
     }
-    console.log('[CPM] validateCsrfToken (FormData): ', formDataOrRequest); // @DEBUG
     await csrf.validate(formDataOrRequest, headers);
   } else {
     // Legacy behavior: read from request
     const formData = await formDataOrRequest.clone().formData();
-    console.log(
-      '[CPM] validateCsrfToken (Request): ',
-      formData,
-      formDataOrRequest
-    ); // @DEBUG
     await csrf.validate(formData, formDataOrRequest.headers);
   }
 }

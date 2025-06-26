@@ -1,6 +1,8 @@
-# Welcome to Remix!
+# Parkbench!
 
-- 📖 [Remix docs](https://remix.run/docs)
+A web app for checking in visitors at parks and seeing who else is at nearby parks.
+
+It should be noted that the code quality here is abysmal, this project is an experiment in complete vibe-coding to understand what works, what doesn't, and what's possible.
 
 ## Development
 

@@ -81,7 +81,7 @@ export default function SignInRoute() {
                 name={fields.email.name}
                 aria-invalid={Boolean(fields.email.errors)}
                 aria-describedby={fields.email.errorId}
-                className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-white"
               />
             </label>
             <div id={fields.email.errorId} className="text-sm text-red-600">
