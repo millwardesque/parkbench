@@ -43,7 +43,7 @@ describe('Session Management Utilities', () => {
       } catch (response) {
         expect(response).toBeInstanceOf(Response);
         const location = (response as Response).headers.get('Location');
-        expect(location).toBe('/sign-in?redirectTo=%2Fprofile');
+        expect(location).toBe('/auth/signin?redirectTo=%2Fprofile');
       }
     });
 
