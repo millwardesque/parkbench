@@ -1,4 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  MockInstance,
+} from 'vitest';
 import {
   createUserSession,
   getUserId,
@@ -7,7 +15,7 @@ import {
 } from './session.server';
 
 describe('Session Management Utilities', () => {
-  let commitSessionSpy: vi.SpyInstance;
+  let commitSessionSpy: MockInstance;
 
   beforeEach(() => {
     commitSessionSpy = vi.spyOn(sessionStorage, 'commitSession');
