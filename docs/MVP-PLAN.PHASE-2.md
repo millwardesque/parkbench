@@ -23,7 +23,6 @@ foundation.
 | D9  | `/auth/magic` callback route consuming token and creating session                 | Valid token sets cookie & redirects; invalid shows error            |
 | D10 | Session util (`session.server.ts`) providing `requireUserSession()`, CSRF helpers | Protected route redirects when session missing; CSRF header present |
 | D11 | `/profile` page with visitor CRUD (add / rename / delete soft)                    | UI updates reflect DB after mutation                                |
-| D12 | Cypress E2E covering register → magic link → check-in happy path                  | `npm run e2e` passes                                                |
 
 ## 3. Work Breakdown Structure
 
@@ -64,26 +63,22 @@ foundation.
 3. (**10.3**) Actions to add, rename, soft-delete visitors.
 4. (**10.4**) Prisma queries respect soft-delete middleware from Phase 1.
 
-### 3.6 Testing & CI Updates (WBS-11)
+### 3.6 Testing Updates (WBS-11)
 
-1. (**11.1**) Expand Vitest coverage for auth utilities.
-2. (**11.2**) Write Cypress E2E: register → email link (stub) → profile.
-3. (**11.3**) Add Mail service ENV secrets to GitHub Actions with dummy values.
-4. (**11.4**) Update `ci.yml` to run `npm run e2e:headless`.
+1. (**11.1**) Expand Vitest coverage for auth utilities and session management.
 
 ## 4. Timeline (1.5 weeks)
 
-| Day | Tasks                      |
-| --- | -------------------------- |
-| 1   | 6.1-6.3                    |
-| 2   | 6.4, 7.1-7.2               |
-| 3   | 7.3-7.4, 8.1               |
-| 4   | 8.2-8.3                    |
-| 5   | 8.4, 9.1-9.2               |
-| 6   | 9.3-9.4, 10.1              |
-| 7   | 10.2-10.4                  |
-| 8   | 11.1-11.2                  |
-| 9   | 11.3-11.4, buffer & review |
+| Day | Tasks                 |
+| --- | --------------------- |
+| 1   | 6.1-6.3               |
+| 2   | 6.4, 7.1-7.2          |
+| 3   | 7.3-7.4, 8.1          |
+| 4   | 8.2-8.3               |
+| 5   | 8.4, 9.1-9.2          |
+| 6   | 9.3-9.4, 10.1         |
+| 7   | 10.2-10.4             |
+| 8   | 11.1, buffer & review |
 
 ## 5. Acceptance Tests
 
@@ -91,7 +86,6 @@ foundation.
 - Visiting magic-link logs user in, sets cookie, redirects to `/profile`.
 - CSRF token present in profile mutations; invalid token returns 403.
 - Visitor CRUD updates DB and UI without full reload.
-- Cypress suite passes in CI.
 
 ## 6. Risks & Mitigations
 
@@ -100,16 +94,12 @@ foundation.
 | Email provider limitations      | Block sign-in    | Abstract interface, allow console fallback |
 | Token replay attacks            | Account takeover | Consume token atomically; set short TTL    |
 | Cookie mis-config (secure flag) | Session leakage  | Automated security check on build          |
-| E2E flakiness with email step   | CI failures      | Stub email service in Cypress              |
 
 ## 7. Reference Commands
 
 ```bash
 # Prisma add token model
 npx prisma migrate dev --name add_magic_link_token
-
-# Run Cypress headed for debugging
-yarn cypress open
 ```
 
 ---
