@@ -51,11 +51,16 @@ updates and a streamlined, generic check-in entry point.
 4. (**21.2**) Update generic check-in loader to honour optional `parkId` query
    param and pre-select park.
 
-### 3.4 Testing (WBS-22)
+### 3.4 Bugs (WBS-22)
 
-1. (**22.1**) Vitest unit tests for `useParkList()` cache invalidation.
-2. (**22.2**) Cypress E2E: main-page list refreshes immediately after check-in.
-3. (**22.3**) Axe-core accessibility checks for new check-in page & buttons.
+1. (**22.1**) The park-list refresh only seems to work for the first visitor listed. Checking in / out the second visitor listed does not refresh the list.
+2. (**22.2**) `npm run typecheck` fails with multiple errors. Fix them, and make sure we run `npm run typecheck` as part of our CI pipeline.
+
+### 3.5 Testing (WBS-23)
+
+1. (**23.1**) Vitest unit tests for `useParkList()` cache invalidation.
+2. (**23.2**) Cypress E2E: main-page list refreshes immediately after check-in.
+3. (**23.3**) Axe-core accessibility checks for new check-in page & buttons.
 
 ## 4. Timeline (1 week)
 

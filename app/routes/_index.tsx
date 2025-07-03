@@ -87,9 +87,16 @@ function ParkList({
     <ul className="divide-y divide-gray-200">
       {normalizedParks.map((park) => (
         <li key={park.id?.toString()} className="px-6 py-4">
-          <p className="font-medium text-gray-900 mb-2">
-            {park.name?.toString()}
-          </p>
+          <div className="flex justify-between items-center mb-2">
+            <p className="font-medium text-gray-900">{park.name?.toString()}</p>
+            <Link
+              to={`/checkin?parkId=${encodeURIComponent(park.id?.toString() || '')}`}
+              className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              aria-label={`Check in a visitor to ${park.name?.toString()}`}
+            >
+              Check-in visitor
+            </Link>
+          </div>
           <div className="flex flex-wrap gap-2">
             {park.visitors.map((visitor: Record<string, unknown>) => (
               <VisitorBadge
