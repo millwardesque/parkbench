@@ -63,7 +63,6 @@ Parkbench useful to signed-in parents.
 
 ### 3.6 Testing (WBS-17)
 
-1. (**17.1**) Cypress happy-path: sign-in via magic link stub, check-in, list refresh, check-out.
 2. (**17.2**) Edge cases: duplicate active check-in, invalid duration.
 3. (**17.3**) GitHub Actions job matrix (`node:18`, `node:20`).
 

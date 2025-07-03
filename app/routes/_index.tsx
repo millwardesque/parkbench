@@ -1,13 +1,18 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/node';
-import { Form, Link, useLoaderData } from '@remix-run/react';
+import { Form, Link, useFetcher, useLoaderData } from '@remix-run/react';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { requireUserId } from '~/utils/session.server';
 import prisma from '~/utils/db.server';
+import {
+  type ParkWithVisitors,
+  getCachedActiveCheckins,
+} from '~/utils/checkin.server';
+import type { Location, Visitor, Checkin } from '@prisma/client';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUserId(request);
-  const [locations, visitors] = await Promise.all([
+  const [locations, visitors, parksWithVisitors] = await Promise.all([
     prisma.location.findMany({
       where: { deleted_at: null },
       orderBy: { name: 'asc' },
@@ -22,23 +27,121 @@ export async function loader({ request }: LoaderFunctionArgs) {
       },
       orderBy: { name: 'asc' },
     }),
+    getCachedActiveCheckins(),
   ]);
 
-  return json({ locations, visitors });
+  // For API requests, return only the parks data
+  const url = new URL(request.url);
+  if (
+    url.searchParams.has('_data') &&
+    url.searchParams.get('_data')?.includes('routes/_index')
+  ) {
+    return json({ parksWithVisitors });
+  }
+
+  return json({ locations, visitors, parksWithVisitors });
+}
+
+/**
+ * Component to display a visitor badge
+ */
+function VisitorBadge({ name }: { name: string }) {
+  return (
+    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+      {name}
+    </span>
+  );
+}
+
+/**
+ * Component to display the list of parks with visitors
+ */
+function ParkList({
+  parks,
+}: {
+  parks: ParkWithVisitors[] | Array<Record<string, unknown>>;
+}) {
+  // Convert serialized data back to the expected format if needed
+  const normalizedParks = parks.map((park) => ({
+    id: park.id,
+    name: park.name,
+    visitors: Array.isArray(park.visitors)
+      ? park.visitors.map((v: Record<string, unknown>) => ({
+          id: v.id,
+          name: v.name,
+          checkin: v.checkin,
+        }))
+      : [],
+  }));
+  if (normalizedParks.length === 0) {
+    return (
+      <div className="px-6 py-4 text-center text-gray-500">
+        No one is currently checked in at any park
+      </div>
+    );
+  }
+
+  return (
+    <ul className="divide-y divide-gray-200">
+      {normalizedParks.map((park) => (
+        <li key={park.id?.toString()} className="px-6 py-4">
+          <p className="font-medium text-gray-900 mb-2">
+            {park.name?.toString()}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {park.visitors.map((visitor: Record<string, unknown>) => (
+              <VisitorBadge
+                key={visitor.id?.toString()}
+                name={visitor.name?.toString() || ''}
+              />
+            ))}
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 export default function Index() {
-  const { locations, visitors } = useLoaderData<typeof loader>();
+  const loaderData = useLoaderData<typeof loader>();
+  // Handle both full data and partial refresh data
+  const locations =
+    'locations' in loaderData ? (loaderData.locations as Location[]) : [];
+  const visitors =
+    'visitors' in loaderData
+      ? (loaderData.visitors as Array<Visitor & { checkins: Checkin[] }>)
+      : [];
+  const parksWithVisitors =
+    'parksWithVisitors' in loaderData ? loaderData.parksWithVisitors : [];
   const csrf = useAuthenticityToken();
   const [selectedLocations, setSelectedLocations] = useState<
     Record<string, string>
   >({});
 
+  // Set up auto-refresh for parks data
+  const parksFetcher = useFetcher<{ parksWithVisitors: ParkWithVisitors[] }>();
+
+  useEffect(() => {
+    // Initial fetch
+    if (parksFetcher.state === 'idle' && !parksFetcher.data) {
+      parksFetcher.load('/?index');
+    }
+
+    // Set up polling every 15 seconds
+    const interval = setInterval(() => {
+      if (parksFetcher.state === 'idle') {
+        parksFetcher.load('/?index');
+      }
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, [parksFetcher]);
+
   const visitorCheckinMap = new Map<string, string | null>();
-  visitors.forEach((visitor) => {
+  visitors.forEach((visitor: Visitor & { checkins: Checkin[] }) => {
     if (visitor.checkins.length > 0) {
       const location = locations.find(
-        (loc) => loc.id === visitor.checkins[0].location_id
+        (loc: Location) => loc.id === visitor.checkins[0].location_id
       );
       visitorCheckinMap.set(visitor.id, location?.name ?? 'Unknown Location');
     } else {
@@ -77,7 +180,7 @@ export default function Index() {
             </h2>
             <div className="bg-white rounded-lg shadow overflow-hidden">
               <ul className="divide-y divide-gray-200">
-                {visitors.map((visitor) => {
+                {visitors.map((visitor: Visitor & { checkins: Checkin[] }) => {
                   const isCheckedIn = visitor.checkins.length > 0;
                   const checkedInLocationName = isCheckedIn
                     ? visitorCheckinMap.get(visitor.id)
@@ -150,7 +253,7 @@ export default function Index() {
                               <option value="" disabled>
                                 Select park...
                               </option>
-                              {locations.map((location) => (
+                              {locations.map((location: Location) => (
                                 <option key={location.id} value={location.id}>
                                   {location.name}
                                 </option>
@@ -174,14 +277,18 @@ export default function Index() {
           </section>
           <section>
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Parks</h2>
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <ul className="divide-y divide-gray-200">
-                {locations.map((location) => (
-                  <li key={location.id} className="px-6 py-4">
-                    <p className="font-medium text-gray-900">{location.name}</p>
-                  </li>
-                ))}
-              </ul>
+            <div
+              className="bg-white rounded-lg shadow overflow-hidden"
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              <ParkList
+                parks={
+                  parksFetcher.data?.parksWithVisitors ||
+                  parksWithVisitors ||
+                  []
+                }
+              />
             </div>
           </section>
         </div>
