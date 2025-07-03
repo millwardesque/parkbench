@@ -36,13 +36,20 @@
 - [ ] Implement deep-linking for the check-in page.
 - [ ] Build the check-out functionality.
 
-### Phase 4: Backend Processes & Refinements
+### Phase 4: Additional UX polish
+
+- [ ] Reload the Parks list on the main page after check-in and check-out on the main page
+- [ ] Create a generic check-in page that provides a drop-down of parks and visitors, and a duration selector
+- [ ] Link to the generic check-in page from the main page
+- [ ] Add a "Check-in" button to the main page that links to the generic check-in page
+
+### Phase 5: Backend Processes & Refinements
 
 - [ ] Implement the cron job for auto-expiring check-ins.
 - [ ] Implement Prisma middleware for soft deletes.
 - [ ] Add rate limiting and email verification.
 
-### Phase 5: Testing & Deployment
+### Phase 6: Testing & Deployment
 
 - [ ] Write unit tests for critical backend logic.
 - [ ] Write E2E tests for main user flows.
