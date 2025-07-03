@@ -9,20 +9,51 @@
 // ***********************************************
 
 // Add any custom Cypress commands here
-// Example: Cypress.Commands.add('login', (email, password) => { ... })
+
+// Tab command for accessibility testing
+Cypress.Commands.add('tab', { prevSubject: 'optional' }, (subject) => {
+  const focusableElements =
+    'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"])';
+
+  // If a subject is provided, use it as the starting point; otherwise, start at the beginning
+  if (subject) {
+    cy.wrap(subject).trigger('keydown', { keyCode: 9, which: 9 });
+  }
+
+  // Simulate a Tab key press
+  cy.document().then((doc) => {
+    const { activeElement } = doc;
+    const focusable = Array.from(
+      doc.querySelectorAll(focusableElements)
+    ).filter((el) => (el as HTMLElement).offsetParent !== null); // Filter out hidden elements
+
+    const currentIndex = activeElement ? focusable.indexOf(activeElement) : -1;
+    const nextIndex =
+      currentIndex + 1 < focusable.length ? currentIndex + 1 : 0;
+    const nextElement = focusable[nextIndex];
+
+    if (nextElement) {
+      cy.wrap(nextElement).focus();
+    }
+  });
+
+  return cy.focused();
+});
 
 // Using ES2015 module syntax (preferred over namespace)
 export {};
 
-// Extend the Cypress types when needed
-// Uncomment below when adding custom commands
-/*
+// Extend the Cypress types using namespace but with ESLint disabled for this specific case
+/* eslint-disable @typescript-eslint/no-namespace */
 declare global {
   namespace Cypress {
     interface Chainable {
-      // Define any custom command types here
-      // Example: login(email: string, password: string): Chainable<void>
+      /**
+       * Custom command to simulate pressing the Tab key for accessibility testing
+       * @example cy.tab()
+       */
+      tab(): Chainable<JQuery<HTMLElement>>;
     }
   }
 }
-*/
+/* eslint-enable @typescript-eslint/no-namespace */

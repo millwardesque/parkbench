@@ -12,9 +12,9 @@ import {
 } from '~/utils/checkin.server';
 import prisma from '~/utils/db.server';
 
-// Mock the Prisma client
-vi.mock('~/utils/db.server', () => ({
-  default: {
+// Mock the Prisma client with properly typed mock functions
+vi.mock('~/utils/db.server', () => {
+  const mockPrisma = {
     location: {
       findMany: vi.fn(),
     },
@@ -29,12 +29,26 @@ vi.mock('~/utils/db.server', () => ({
       update: vi.fn(),
     },
     $transaction: vi.fn((promises) => Promise.all(promises)),
-  },
-}));
+  };
+
+  return { default: mockPrisma };
+});
+
+// Type assertion for mocked prisma client
+type MockedPrismaClient = {
+  [K in keyof typeof prisma]: {
+    [M in keyof (typeof prisma)[K]]: ReturnType<typeof vi.fn>;
+  };
+} & {
+  $transaction: ReturnType<typeof vi.fn>;
+};
+
+const mockedPrisma = prisma as unknown as MockedPrismaClient;
 
 describe('Checkin utilities', () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    // Reset all mocks before each test
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
@@ -96,13 +110,13 @@ describe('Checkin utilities', () => {
       ];
 
       // Setup mocks
-      prisma.location.findMany.mockResolvedValue(mockLocations);
+      mockedPrisma.location.findMany.mockResolvedValue(mockLocations);
 
       // Execute
       const result = await getActiveCheckins();
 
       // Verify
-      expect(prisma.location.findMany).toHaveBeenCalledWith({
+      expect(mockedPrisma.location.findMany).toHaveBeenCalledWith({
         where: {
           deleted_at: null,
           checkins: {
@@ -149,7 +163,7 @@ describe('Checkin utilities', () => {
       // Mock getActiveCheckins to control cache population
       const mockData = [{ id: 'park-1', name: 'Test Park', visitors: [] }];
       vi.mock('~/utils/checkin.server', async (importOriginal) => {
-        const original = await importOriginal();
+        const original = (await importOriginal()) as Record<string, unknown>;
         return {
           ...original,
           getActiveCheckins: vi.fn().mockResolvedValue(mockData),
@@ -159,12 +173,12 @@ describe('Checkin utilities', () => {
       // First call should populate cache
       const cachedResult = await getCachedActiveCheckins();
       expect(cachedResult).toEqual(mockData);
-      expect(prisma.location.findMany).not.toHaveBeenCalled();
+      expect(mockedPrisma.location.findMany).not.toHaveBeenCalled();
     });
 
     test('should refresh cache if expired', async () => {
       // Setup
-      prisma.location.findMany.mockResolvedValue([
+      mockedPrisma.location.findMany.mockResolvedValue([
         {
           id: 'park-1',
           name: 'Test Park',
@@ -176,7 +190,7 @@ describe('Checkin utilities', () => {
       await getCachedActiveCheckins();
 
       // Clear the mock to track new calls
-      prisma.location.findMany.mockClear();
+      mockedPrisma.location.findMany.mockClear();
 
       // Manually invalidate cache
       invalidateCache();
@@ -185,7 +199,7 @@ describe('Checkin utilities', () => {
       await getCachedActiveCheckins();
 
       // Verify Prisma was called again
-      expect(prisma.location.findMany).toHaveBeenCalled();
+      expect(mockedPrisma.location.findMany).toHaveBeenCalled();
     });
   });
 
@@ -214,10 +228,10 @@ describe('Checkin utilities', () => {
       const mockLocations = [{ id: 'location-1', name: 'Central Park' }];
 
       // Setup mocks
-      prisma.visitor.findMany.mockResolvedValue(mockVisitors);
-      prisma.location.findMany.mockResolvedValue(mockLocations);
-      prisma.checkin.findMany.mockResolvedValue([]); // No active checkins
-      prisma.$transaction.mockResolvedValue([
+      mockedPrisma.visitor.findMany.mockResolvedValue(mockVisitors);
+      mockedPrisma.location.findMany.mockResolvedValue(mockLocations);
+      mockedPrisma.checkin.findMany.mockResolvedValue([]); // No active checkins
+      mockedPrisma.$transaction.mockResolvedValue([
         { id: 'new-checkin-1', visitor_id: 'visitor-1' },
         { id: 'new-checkin-2', visitor_id: 'visitor-2' },
       ]);
@@ -226,7 +240,7 @@ describe('Checkin utilities', () => {
       const result = await createCheckins(options, userId);
 
       // Verify
-      expect(prisma.visitor.findMany).toHaveBeenCalledWith({
+      expect(mockedPrisma.visitor.findMany).toHaveBeenCalledWith({
         where: {
           id: { in: ['visitor-1', 'visitor-2'] },
           owner_id: userId,
@@ -234,14 +248,14 @@ describe('Checkin utilities', () => {
         },
       });
 
-      expect(prisma.location.findMany).toHaveBeenCalledWith({
+      expect(mockedPrisma.location.findMany).toHaveBeenCalledWith({
         where: {
           id: { in: ['location-1'] },
           deleted_at: null,
         },
       });
 
-      expect(prisma.checkin.findMany).toHaveBeenCalledWith({
+      expect(mockedPrisma.checkin.findMany).toHaveBeenCalledWith({
         where: {
           visitor_id: { in: ['visitor-1', 'visitor-2'] },
           actual_checkout_at: null,
@@ -253,7 +267,7 @@ describe('Checkin utilities', () => {
       });
 
       // Verify transaction was called with two create operations
-      expect(prisma.$transaction).toHaveBeenCalled();
+      expect(mockedPrisma.$transaction).toHaveBeenCalled();
       expect(result).toHaveLength(2);
       expect(result[0].visitor_id).toBe('visitor-1');
       expect(result[1].visitor_id).toBe('visitor-2');
@@ -286,13 +300,13 @@ describe('Checkin utilities', () => {
       ];
 
       // Setup mocks
-      prisma.visitor.findMany.mockResolvedValue(mockVisitors);
-      prisma.location.findMany.mockResolvedValue(mockLocations);
-      prisma.checkin.findMany.mockResolvedValue(mockActiveCheckins);
+      mockedPrisma.visitor.findMany.mockResolvedValue(mockVisitors);
+      mockedPrisma.location.findMany.mockResolvedValue(mockLocations);
+      mockedPrisma.checkin.findMany.mockResolvedValue(mockActiveCheckins);
 
       // Execute & Verify
       await expect(createCheckins(options, userId)).rejects.toThrow();
-      expect(prisma.checkin.create).not.toHaveBeenCalled();
+      expect(mockedPrisma.checkin.create).not.toHaveBeenCalled();
     });
   });
 
@@ -316,8 +330,10 @@ describe('Checkin utilities', () => {
       ];
 
       // Setup mocks
-      prisma.checkin.findMany.mockResolvedValue(mockCheckins);
-      prisma.checkin.update.mockImplementation((data) =>
+      mockedPrisma.checkin.findMany.mockResolvedValue(mockCheckins);
+      // Use type assertion to properly type the implementation function parameter
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockedPrisma.checkin.update.mockImplementation((data: any) =>
         Promise.resolve({
           id: data.where.id,
           actual_checkout_at: new Date(),
@@ -362,11 +378,11 @@ describe('Checkin utilities', () => {
       ];
 
       // Setup mocks
-      prisma.checkin.findMany.mockResolvedValue(mockCheckins);
+      mockedPrisma.checkin.findMany.mockResolvedValue(mockCheckins);
 
       // Execute & Verify
       await expect(endCheckins(checkinIds, userId)).rejects.toThrow();
-      expect(prisma.checkin.update).not.toHaveBeenCalled();
+      expect(mockedPrisma.checkin.update).not.toHaveBeenCalled();
     });
   });
 });

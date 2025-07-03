@@ -71,10 +71,11 @@ export function useToast() {
   const [toast, setToast] = useState<ToastProps | null>(null);
 
   const showToast = (props: Partial<ToastProps>) => {
+    // Cast to ToastProps after ensuring all required props have values
     setToast({
       ...defaultToastProps,
       ...props,
-    });
+    } as ToastProps);
   };
 
   const hideToast = () => {
@@ -116,12 +117,14 @@ export function ToastFromHeaders() {
         message: successMessage,
         type: 'success',
         duration: 5000,
+        onClose: () => {},
       });
     } else if (error === 'true' && errorMessage) {
       setToast({
         message: errorMessage,
         type: 'error',
         duration: 5000,
+        onClose: () => {},
       });
     }
   }, []);

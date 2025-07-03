@@ -33,6 +33,18 @@ type ActionErrors = {
   form?: string;
 };
 
+type ActionData =
+  | {
+      errors: ActionErrors;
+      values: {
+        visitorIds: string[];
+        locationId?: string;
+        durationMinutes: number;
+      };
+    }
+  | { locationId: string }
+  | { form: string };
+
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const userId = await requireUserId(request);
 
@@ -71,7 +83,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   return json({ locations, visitors, preselectedLocationId });
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({
+  request,
+}: ActionFunctionArgs): Promise<Response> {
   const userId = await requireUserId(request);
   const formData = await request.formData();
 
@@ -234,18 +248,24 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function CheckInPage() {
   const { locations, visitors, preselectedLocationId } =
     useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
+  const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
 
   const [selectedVisitorIds, setSelectedVisitorIds] = useState<string[]>(
-    actionData?.values?.visitorIds || []
+    actionData && 'values' in actionData ? actionData.values.visitorIds : []
   );
   const [locationId, setLocationId] = useState<string>(
-    actionData?.values?.locationId || preselectedLocationId || ''
+    (actionData && 'values' in actionData
+      ? actionData.values.locationId
+      : undefined) ||
+      preselectedLocationId ||
+      ''
   );
   const [durationMinutes, setDurationMinutes] = useState<number>(
-    actionData?.values?.durationMinutes || 60
+    actionData && 'values' in actionData
+      ? actionData.values.durationMinutes
+      : 60
   );
 
   const handleVisitorChange = (visitorId: string) => {
@@ -275,11 +295,13 @@ export default function CheckInPage() {
             </div>
           ) : (
             <Form method="post" className="space-y-6">
-              {actionData?.errors?.form && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                  {actionData.errors.form}
-                </div>
-              )}
+              {actionData &&
+                'errors' in actionData &&
+                actionData.errors.form && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                    {actionData.errors.form}
+                  </div>
+                )}
 
               <div>
                 <div className="block text-sm font-medium text-gray-700 mb-2">
@@ -306,11 +328,13 @@ export default function CheckInPage() {
                     </div>
                   ))}
                 </div>
-                {actionData?.errors?.visitorIds && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {actionData.errors.visitorIds}
-                  </p>
-                )}
+                {actionData &&
+                  'errors' in actionData &&
+                  actionData.errors.visitorIds && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {actionData.errors.visitorIds}
+                    </p>
+                  )}
               </div>
 
               <div>
@@ -337,11 +361,13 @@ export default function CheckInPage() {
                     </option>
                   ))}
                 </select>
-                {actionData?.errors?.locationId && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {actionData.errors.locationId}
-                  </p>
-                )}
+                {actionData &&
+                  'errors' in actionData &&
+                  actionData.errors.locationId && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {actionData.errors.locationId}
+                    </p>
+                  )}
               </div>
 
               <div>
@@ -366,11 +392,13 @@ export default function CheckInPage() {
                   <option value="180">3 hours</option>
                   <option value="240">4 hours</option>
                 </select>
-                {actionData?.errors?.durationMinutes && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {actionData.errors.durationMinutes}
-                  </p>
-                )}
+                {actionData &&
+                  'errors' in actionData &&
+                  actionData.errors.durationMinutes && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {actionData.errors.durationMinutes}
+                    </p>
+                  )}
               </div>
 
               <div className="flex justify-between pt-4">
