@@ -4,6 +4,8 @@ import { ActionFunctionArgs, json, redirect } from '@remix-run/node';
 import { z } from 'zod';
 import prisma from '~/utils/db.server';
 import { requireUserId, validateCsrfToken } from '~/utils/session.server';
+import { broadcastEvent } from '~/routes/api/events';
+import { getCachedActiveCheckins } from '~/utils/checkin.server';
 
 const checkInSchema = z.object({
   intent: z.literal('check-in'),
@@ -45,6 +47,7 @@ export async function action({ request }: ActionFunctionArgs) {
       });
     }
 
+    // Create the check-in record
     await prisma.checkin.create({
       data: {
         visitor_id: visitorId,
@@ -54,6 +57,10 @@ export async function action({ request }: ActionFunctionArgs) {
         est_checkout_at: new Date(Date.now() + 2 * 60 * 60 * 1000),
       },
     });
+
+    // Get updated parks data and broadcast the event
+    const updatedParks = await getCachedActiveCheckins();
+    broadcastEvent('checkin:changed', { parksWithVisitors: updatedParks });
   } else if (intent === 'check-out') {
     const { checkinId } = submission.value;
     // Ensure the check-in record belongs to a visitor of the current user
@@ -70,10 +77,15 @@ export async function action({ request }: ActionFunctionArgs) {
       });
     }
 
+    // Update the check-in record
     await prisma.checkin.update({
       where: { id: checkinId },
       data: { actual_checkout_at: new Date() },
     });
+
+    // Get updated parks data and broadcast the event
+    const updatedParks = await getCachedActiveCheckins();
+    broadcastEvent('checkin:changed', { parksWithVisitors: updatedParks });
   }
 
   return redirect('/');

@@ -1,7 +1,7 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/node';
-import { Form, Link, useFetcher, useLoaderData } from '@remix-run/react';
+import { Form, Link, useLoaderData } from '@remix-run/react';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { requireUserId } from '~/utils/session.server';
 import prisma from '~/utils/db.server';
 import {
@@ -9,6 +9,8 @@ import {
   getCachedActiveCheckins,
 } from '~/utils/checkin.server';
 import type { Location, Visitor, Checkin } from '@prisma/client';
+import useParkList from '~/utils/useParkList';
+import useEventSource from '~/utils/useEventSource';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUserId(request);
@@ -111,31 +113,35 @@ export default function Index() {
     'visitors' in loaderData
       ? (loaderData.visitors as Array<Visitor & { checkins: Checkin[] }>)
       : [];
-  const parksWithVisitors =
+  const initialParksWithVisitors =
     'parksWithVisitors' in loaderData ? loaderData.parksWithVisitors : [];
   const csrf = useAuthenticityToken();
   const [selectedLocations, setSelectedLocations] = useState<
     Record<string, string>
   >({});
 
-  // Set up auto-refresh for parks data
-  const parksFetcher = useFetcher<{ parksWithVisitors: ParkWithVisitors[] }>();
+  // Use our custom hook for park list data with automatic refresh
+  const { parks: parksWithVisitors, refresh: refreshParks } = useParkList();
 
-  useEffect(() => {
-    // Initial fetch
-    if (parksFetcher.state === 'idle' && !parksFetcher.data) {
-      parksFetcher.load('/?index');
-    }
-
-    // Set up polling every 15 seconds
-    const interval = setInterval(() => {
-      if (parksFetcher.state === 'idle') {
-        parksFetcher.load('/?index');
+  // Subscribe to real-time check-in events
+  const handleCheckinChanged = useCallback(
+    (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data && data.parksWithVisitors) {
+          // Data will be automatically updated by SWR
+          // This is just a trigger to ensure immediate refresh
+          refreshParks();
+        }
+      } catch (error) {
+        // Silent error - fallback to regular polling
       }
-    }, 15000);
+    },
+    [refreshParks]
+  );
 
-    return () => clearInterval(interval);
-  }, [parksFetcher]);
+  // Connect to SSE for real-time updates
+  useEventSource('/api/events', 'checkin:changed', handleCheckinChanged);
 
   const visitorCheckinMap = new Map<string, string | null>();
   visitors.forEach((visitor: Visitor & { checkins: Checkin[] }) => {
@@ -284,12 +290,25 @@ export default function Index() {
             >
               <ParkList
                 parks={
-                  parksFetcher.data?.parksWithVisitors ||
-                  parksWithVisitors ||
-                  []
+                  parksWithVisitors.length > 0
+                    ? parksWithVisitors
+                    : initialParksWithVisitors || []
                 }
               />
             </div>
+
+            {/* Add navigation CTA button for Check-in (WBS-20) */}
+            {locations.length > 0 && (
+              <div className="mt-6 text-center">
+                <Link
+                  to="/checkin"
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  aria-label="Check in a visitor to a park"
+                >
+                  Check-in
+                </Link>
+              </div>
+            )}
           </section>
         </div>
       </main>
