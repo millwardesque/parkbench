@@ -9,6 +9,7 @@ import { useForm, getFormProps, getInputProps } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import AuthForm from '~/components/AuthForm';
 import { createUser, sendMagicLink } from '~/lib/auth.server';
+import { withRateLimit } from '~/utils/limiter.server';
 
 const inputClassName =
   'w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500';
@@ -37,7 +38,7 @@ const RegisterSchema = z.object({
 
 export const meta: MetaFunction = () => [{ title: 'Register | Parkbench' }];
 
-export async function action({ request }: ActionFunctionArgs) {
+export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
   const submission = parseWithZod(formData, { schema: RegisterSchema });
 
@@ -72,7 +73,7 @@ export async function action({ request }: ActionFunctionArgs) {
       })
     );
   }
-}
+});
 
 export default function RegisterRoute() {
   const fetcher = useFetcher<typeof action>();

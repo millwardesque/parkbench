@@ -4,6 +4,7 @@ import { z } from 'zod';
 import prisma from '~/utils/db.server';
 import { verifyMagicLinkToken } from '~/lib/auth.server';
 import { createUserSession } from '~/utils/session.server';
+import { withRateLimit } from '~/utils/limiter.server';
 
 // Schema to validate the query parameters
 const MagicLinkQuerySchema = z.object({
@@ -11,7 +12,7 @@ const MagicLinkQuerySchema = z.object({
   email: z.string().email(),
 });
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export const loader = withRateLimit(async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const queryParams = Object.fromEntries(url.searchParams.entries());
 
@@ -39,7 +40,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   return createUserSession(user.id, '/profile');
-}
+});
 
 export default function AuthMagicRoute() {
   const data = useLoaderData<typeof loader>();

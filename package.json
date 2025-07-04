@@ -17,7 +17,9 @@
     "cypress:run": "cypress run",
     "test:e2e": "start-server-and-test dev http://localhost:5173 cypress:run",
     "db:seed": "tsx scripts/seed.ts",
-    "db:reset": "prisma migrate reset --force"
+    "db:reset": "prisma migrate reset --force",
+    "cron:expire": "tsx scripts/cron.ts",
+    "db:purge": "tsx scripts/purge-soft-deletes.ts"
   },
   "prisma": {
     "seed": "tsx scripts/seed.ts"
@@ -29,8 +31,10 @@
     "@remix-run/node": "^2.16.8",
     "@remix-run/react": "^2.16.8",
     "@remix-run/serve": "^2.16.8",
+    "dotenv": "^17.0.1",
     "dotenv-safe": "^9.1.0",
     "isbot": "^4.1.0",
+    "rate-limiter-flexible": "^7.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "remix-utils": "^7.7.0",

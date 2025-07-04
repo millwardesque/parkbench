@@ -18,6 +18,7 @@ import { useState } from 'react';
 import { z } from 'zod';
 import { requireUserId } from '~/utils/session.server';
 import prisma from '~/utils/db.server';
+import { withRateLimit } from '~/utils/limiter.server';
 
 // Form validation schema
 const CheckInSchema = z.object({
@@ -83,167 +84,170 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   return json({ locations, visitors, preselectedLocationId });
 }
 
-export async function action({
-  request,
-}: ActionFunctionArgs): Promise<Response> {
-  const userId = await requireUserId(request);
-  const formData = await request.formData();
+export const action = withRateLimit(
+  async ({ request }: ActionFunctionArgs): Promise<Response> => {
+    const userId = await requireUserId(request);
+    const formData = await request.formData();
 
-  // Parse form data
-  const selectedVisitorIds = formData.getAll('visitorIds').map(String);
-  const locationId = formData.get('locationId')?.toString();
-  const durationMinutes = Number(formData.get('durationMinutes'));
+    // Parse form data
+    const selectedVisitorIds = formData.getAll('visitorIds').map(String);
+    const locationId = formData.get('locationId')?.toString();
+    const durationMinutes = Number(formData.get('durationMinutes'));
 
-  const validationResult = CheckInSchema.safeParse({
-    visitorIds: selectedVisitorIds,
-    locationId,
-    durationMinutes,
-  });
-
-  if (!validationResult.success) {
-    const { fieldErrors } = validationResult.error.flatten();
-    const errors: ActionErrors = {
-      visitorIds: fieldErrors.visitorIds?.[0],
-      locationId: fieldErrors.locationId?.[0],
-      durationMinutes: fieldErrors.durationMinutes?.[0],
-    };
-
-    return json(
-      {
-        errors,
-        values: { visitorIds: selectedVisitorIds, locationId, durationMinutes },
-      },
-      { status: 400 }
-    );
-  }
-
-  try {
-    const {
-      visitorIds: validatedVisitorIds,
-      locationId: validatedLocationId,
-      durationMinutes: validatedDurationMinutes,
-    } = validationResult.data;
-
-    // Calculate checkout time based on duration
-    const checkinAt = new Date();
-    const estCheckoutAt = new Date(
-      checkinAt.getTime() + validatedDurationMinutes * 60 * 1000
-    );
-
-    // Verify all visitors belong to the current user
-    const visitors = await prisma.visitor.findMany({
-      where: {
-        id: { in: validatedVisitorIds },
-        owner_id: userId,
-        deleted_at: null,
-      },
+    const validationResult = CheckInSchema.safeParse({
+      visitorIds: selectedVisitorIds,
+      locationId,
+      durationMinutes,
     });
 
-    if (visitors.length !== validatedVisitorIds.length) {
-      return json(
-        {
-          errors: {
-            form: "One or more selected visitors don't belong to you",
-          },
-          values: {
-            visitorIds: validatedVisitorIds,
-            locationId: validatedLocationId,
-            durationMinutes: validatedDurationMinutes,
-          },
-        },
-        { status: 403 }
-      );
-    }
-
-    // Verify location exists
-    const location = await prisma.location.findFirst({
-      where: {
-        id: validatedLocationId,
-        deleted_at: null,
-      },
-    });
-
-    if (!location) {
-      return json(
-        {
-          errors: {
-            locationId: "Selected location doesn't exist",
-          },
-          values: {
-            visitorIds: validatedVisitorIds,
-            locationId: validatedLocationId,
-            durationMinutes: validatedDurationMinutes,
-          },
-        },
-        { status: 404 }
-      );
-    }
-
-    // Verify visitors aren't already checked in elsewhere
-    const activeCheckins = await prisma.checkin.findMany({
-      where: {
-        visitor_id: { in: validatedVisitorIds },
-        actual_checkout_at: null,
-        deleted_at: null,
-      },
-    });
-
-    if (activeCheckins.length > 0) {
-      // Get the names of visitors who are already checked in
-      const alreadyCheckedInVisitorIds = activeCheckins.map(
-        (c) => c.visitor_id
-      );
-      const alreadyCheckedInVisitors = visitors.filter((v) =>
-        alreadyCheckedInVisitorIds.includes(v.id)
-      );
-      const visitorNames = alreadyCheckedInVisitors
-        .map((v) => v.name)
-        .join(', ');
+    if (!validationResult.success) {
+      const { fieldErrors } = validationResult.error.flatten();
+      const errors: ActionErrors = {
+        visitorIds: fieldErrors.visitorIds?.[0],
+        locationId: fieldErrors.locationId?.[0],
+        durationMinutes: fieldErrors.durationMinutes?.[0],
+      };
 
       return json(
         {
-          errors: {
-            form: `${visitorNames} ${alreadyCheckedInVisitors.length > 1 ? 'are' : 'is'} already checked in somewhere else`,
-          },
+          errors,
           values: {
-            visitorIds: validatedVisitorIds,
-            locationId: validatedLocationId,
-            durationMinutes: validatedDurationMinutes,
+            visitorIds: selectedVisitorIds,
+            locationId,
+            durationMinutes,
           },
         },
         { status: 400 }
       );
     }
 
-    // Create check-ins for all selected visitors
-    await prisma.checkin.createMany({
-      data: validatedVisitorIds.map((visitorId) => ({
-        visitor_id: visitorId,
-        location_id: validatedLocationId,
-        user_id: userId,
-        checkin_at: checkinAt,
-        est_checkout_at: estCheckoutAt,
-        actual_checkout_at: null,
-      })),
-    });
+    try {
+      const {
+        visitorIds: validatedVisitorIds,
+        locationId: validatedLocationId,
+        durationMinutes: validatedDurationMinutes,
+      } = validationResult.data;
 
-    return redirect('/');
-  } catch (error) {
-    return json(
-      {
-        errors: {
-          form: 'Failed to check in. Please try again.',
+      // Calculate checkout time based on duration
+      const checkinAt = new Date();
+      const estCheckoutAt = new Date(
+        checkinAt.getTime() + validatedDurationMinutes * 60 * 1000
+      );
+
+      // Verify all visitors belong to the current user
+      const visitors = await prisma.visitor.findMany({
+        where: {
+          id: { in: validatedVisitorIds },
+          owner_id: userId,
+          deleted_at: null,
         },
-        values: {
-          visitorIds: validationResult.data.visitorIds,
-          locationId: validationResult.data.locationId,
-          durationMinutes: validationResult.data.durationMinutes,
+      });
+
+      if (visitors.length !== validatedVisitorIds.length) {
+        return json(
+          {
+            errors: {
+              form: "One or more selected visitors don't belong to you",
+            },
+            values: {
+              visitorIds: validatedVisitorIds,
+              locationId: validatedLocationId,
+              durationMinutes: validatedDurationMinutes,
+            },
+          },
+          { status: 403 }
+        );
+      }
+
+      // Verify location exists
+      const location = await prisma.location.findFirst({
+        where: {
+          id: validatedLocationId,
+          deleted_at: null,
         },
-      },
-      { status: 500 }
-    );
+      });
+
+      if (!location) {
+        return json(
+          {
+            errors: {
+              locationId: "Selected location doesn't exist",
+            },
+            values: {
+              visitorIds: validatedVisitorIds,
+              locationId: validatedLocationId,
+              durationMinutes: validatedDurationMinutes,
+            },
+          },
+          { status: 404 }
+        );
+      }
+
+      // Verify visitors aren't already checked in elsewhere
+      const activeCheckins = await prisma.checkin.findMany({
+        where: {
+          visitor_id: { in: validatedVisitorIds },
+          actual_checkout_at: null,
+          deleted_at: null,
+        },
+      });
+
+      if (activeCheckins.length > 0) {
+        // Get the names of visitors who are already checked in
+        const alreadyCheckedInVisitorIds = activeCheckins.map(
+          (c) => c.visitor_id
+        );
+        const alreadyCheckedInVisitors = visitors.filter((v) =>
+          alreadyCheckedInVisitorIds.includes(v.id)
+        );
+        const visitorNames = alreadyCheckedInVisitors
+          .map((v) => v.name)
+          .join(', ');
+
+        return json(
+          {
+            errors: {
+              form: `${visitorNames} ${alreadyCheckedInVisitors.length > 1 ? 'are' : 'is'} already checked in somewhere else`,
+            },
+            values: {
+              visitorIds: validatedVisitorIds,
+              locationId: validatedLocationId,
+              durationMinutes: validatedDurationMinutes,
+            },
+          },
+          { status: 400 }
+        );
+      }
+
+      // Create check-ins for all selected visitors
+      await prisma.checkin.createMany({
+        data: validatedVisitorIds.map((visitorId) => ({
+          visitor_id: visitorId,
+          location_id: validatedLocationId,
+          user_id: userId,
+          checkin_at: checkinAt,
+          est_checkout_at: estCheckoutAt,
+        })),
+      });
+
+      return redirect('/');
+    } catch (error) {
+      return json(
+        {
+          errors: {
+            form: 'Failed to check in. Please try again.',
+          },
+          values: {
+            visitorIds: selectedVisitorIds,
+            locationId,
+            durationMinutes,
+          },
+        },
+        { status: 500 }
+      );
+    }
   }
-}
+);
 
 export default function CheckInPage() {
   const { locations, visitors, preselectedLocationId } =

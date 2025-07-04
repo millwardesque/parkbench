@@ -6,6 +6,7 @@ import prisma from '~/utils/db.server';
 import { requireUserId, validateCsrfToken } from '~/utils/session.server';
 import { broadcastEvent } from '~/routes/api/events';
 import { getCachedActiveCheckins } from '~/utils/checkin.server';
+import { withRateLimit } from '~/utils/limiter.server';
 
 const checkInSchema = z.object({
   intent: z.literal('check-in'),
@@ -20,7 +21,7 @@ const checkOutSchema = z.object({
 
 const schema = z.union([checkInSchema, checkOutSchema]);
 
-export async function action({ request }: ActionFunctionArgs) {
+export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
   const userId = await requireUserId(request);
 
   const formData = await request.formData();
@@ -89,4 +90,4 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   return redirect('/');
-}
+});

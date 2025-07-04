@@ -6,6 +6,8 @@ import {
 import { Form, useLoaderData, useFetcher } from '@remix-run/react';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';
 import { useState, useEffect } from 'react';
+
+import { withRateLimit } from '~/utils/limiter.server';
 import { z } from 'zod';
 
 import prisma from '~/utils/db.server';
@@ -24,7 +26,7 @@ const VisitorSchema = z.object({
   name: z.string().min(1, 'Name is required'),
 });
 
-export async function action({ request }: ActionFunctionArgs) {
+export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
   await validateCsrfToken(request);
   const userId = await requireUserId(request);
   const formData = await request.formData();
@@ -78,7 +80,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   return json({ error: 'Invalid intent' }, { status: 400 });
-}
+});
 
 export default function VisitorsRoute() {
   const { visitors } = useLoaderData<typeof loader>();

@@ -10,6 +10,7 @@ import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import AuthForm from '~/components/AuthForm';
 import prisma from '~/utils/db.server';
 import { sendMagicLink } from '~/lib/auth.server';
+import { withRateLimit } from '~/utils/limiter.server';
 
 // Define the validation schema for the sign-in form
 const SignInSchema = z.object({
@@ -20,7 +21,7 @@ const SignInSchema = z.object({
 
 export const meta: MetaFunction = () => [{ title: 'Sign In | Parkbench' }];
 
-export async function action({ request }: ActionFunctionArgs) {
+export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
   const submission = parseWithZod(formData, { schema: SignInSchema });
 
@@ -46,7 +47,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   // Always return a successful-looking response to the client.
   return json(submission.reply({ resetForm: true }));
-}
+});
 
 export default function SignInRoute() {
   const fetcher = useFetcher<typeof action>();

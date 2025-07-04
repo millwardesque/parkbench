@@ -58,17 +58,7 @@ export async function getActiveCheckins(): Promise<ParkWithVisitors[]> {
     const visitors = location.checkins.map((checkin) => ({
       id: checkin.visitor.id,
       name: checkin.visitor.name,
-      checkin: {
-        id: checkin.id,
-        visitor_id: checkin.visitor_id,
-        location_id: checkin.location_id,
-        checkin_at: checkin.checkin_at,
-        est_checkout_at: checkin.est_checkout_at,
-        actual_checkout_at: checkin.actual_checkout_at,
-        created_at: checkin.created_at,
-        updated_at: checkin.updated_at,
-        deleted_at: checkin.deleted_at,
-      },
+      checkin,
     }));
 
     // Sort visitors alphabetically by name
@@ -237,6 +227,7 @@ export async function createCheckins(
             location_id: opt.locationId,
             checkin_at: checkinAt,
             est_checkout_at: estCheckoutAt,
+            expires_at: estCheckoutAt,
             actual_checkout_at: null,
           },
         });
@@ -328,5 +319,42 @@ export async function endCheckins(
       'An unexpected error occurred while ending check-ins',
       CheckinErrorType.UNKNOWN
     );
+  }
+}
+
+/**
+ * Expire stale check-ins where the expiration time has passed.
+ * This is intended to be run by a scheduled job.
+ * @returns The number of check-ins that were expired.
+ */
+export async function expireStaleCheckins(): Promise<number> {
+  const now = new Date();
+
+  try {
+    const result = await prisma.checkin.updateMany({
+      where: {
+        actual_checkout_at: null,
+        deleted_at: null,
+        expires_at: {
+          lte: now,
+        },
+      },
+      data: {
+        actual_checkout_at: now,
+      },
+    });
+
+    if (result.count > 0) {
+      // Invalidate cache if any check-ins were updated
+      invalidateCache();
+    }
+
+    return result.count;
+  } catch (error) {
+    // Log error for server-side debugging
+    // eslint-disable-next-line no-console
+    console.error('Error expiring stale check-ins:', error);
+    // For a cron job, we'll just return 0 to indicate no check-ins were successfully expired
+    return 0;
   }
 }

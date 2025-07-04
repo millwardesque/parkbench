@@ -18,6 +18,7 @@ import { useState } from 'react';
 import { z } from 'zod';
 import { requireUserId } from '~/utils/session.server';
 import prisma from '~/utils/db.server';
+import { withRateLimit } from '~/utils/limiter.server';
 
 // Form validation schema
 const CheckOutSchema = z.object({
@@ -54,7 +55,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json({ activeCheckins });
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
   const userId = await requireUserId(request);
   const formData = await request.formData();
 
@@ -123,7 +124,7 @@ export async function action({ request }: ActionFunctionArgs) {
       { status: 500 }
     );
   }
-}
+});
 
 export default function CheckOutPage() {
   const { activeCheckins } = useLoaderData<typeof loader>();

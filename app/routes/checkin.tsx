@@ -21,6 +21,7 @@ import { z } from 'zod';
 import { requireUserId } from '~/utils/session.server';
 import prisma from '~/utils/db.server';
 import createCheckins from '~/utils/createCheckins.server';
+import { withRateLimit } from '~/utils/limiter.server';
 
 // Form validation schema
 const CheckInSchema = z.object({
@@ -81,7 +82,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json({ locations, visitors, preselectedParkId });
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
   const userId = await requireUserId(request);
   const formData = await request.formData();
   const rawVisitorIds = formData.getAll('visitorIds') as string[];
@@ -167,7 +168,7 @@ export async function action({ request }: ActionFunctionArgs) {
       'X-Success-Message': 'Visitors checked in successfully',
     },
   });
-}
+});
 
 export default function CheckInPage() {
   const { locations, visitors, preselectedParkId } =
