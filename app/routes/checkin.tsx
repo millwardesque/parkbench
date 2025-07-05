@@ -12,6 +12,7 @@ import {
 import {
   Form,
   useActionData,
+  useFetcher,
   useLoaderData,
   useNavigation,
   useSearchParams,
@@ -49,8 +50,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const parkId = url.searchParams.get('parkId');
 
-  // Get all locations and visitors that belong to the user
-  const [locations, visitors] = await Promise.all([
+  // Get user, locations, and visitors
+  const [user, locations, visitors] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId } }),
     prisma.location.findMany({
       where: { deleted_at: null },
       orderBy: { name: 'asc' },
@@ -79,7 +81,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   }
 
-  return json({ locations, visitors, preselectedParkId });
+  return json({
+    locations,
+    visitors,
+    preselectedParkId,
+    isEmailVerified: !!user?.email_verified_at,
+  });
 }
 
 export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
@@ -170,8 +177,39 @@ export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
   });
 });
 
+function ResendVerificationBanner() {
+  const fetcher = useFetcher<{ success: boolean }>();
+  const isSubmitting = fetcher.state === 'submitting';
+  const isSuccess = fetcher.data?.success;
+
+  return (
+    <div className="mb-4 p-4 border border-yellow-400 bg-yellow-50 rounded-md text-yellow-700">
+      <p className="font-bold">Email Verification Required</p>
+      <p className="mb-2">
+        Please verify your email address to check in visitors. If you
+        didn&apos;t receive an email, you can request another one.
+      </p>
+      {isSuccess ? (
+        <p className="font-semibold text-green-700">
+          A new verification email has been sent. Please check your inbox.
+        </p>
+      ) : (
+        <fetcher.Form method="post" action="/auth/resend-verification">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50"
+          >
+            {isSubmitting ? 'Sending...' : 'Resend Verification Email'}
+          </button>
+        </fetcher.Form>
+      )}
+    </div>
+  );
+}
+
 export default function CheckInPage() {
-  const { locations, visitors, preselectedParkId } =
+  const { locations, visitors, preselectedParkId, isEmailVerified } =
     useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -218,6 +256,8 @@ export default function CheckInPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="bg-white shadow rounded-lg p-6">
+          {!isEmailVerified && <ResendVerificationBanner />}
+
           {actionData?.errors && 'form' in actionData.errors && (
             <div className="mb-4 p-3 border border-red-400 bg-red-50 rounded-md text-red-700">
               {actionData.errors.form}
@@ -239,126 +279,128 @@ export default function CheckInPage() {
               </p>
             </div>
           ) : (
-            <Form method="post" className="space-y-6">
-              <div>
-                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Select Visitors
-                </label>
-                <div className="mt-2 max-h-60 overflow-y-auto border border-gray-300 rounded-md p-2">
-                  {visitors.map((visitor) => (
-                    <div
-                      key={visitor.id}
-                      className="flex items-center p-2 hover:bg-gray-50"
-                    >
-                      <input
-                        type="checkbox"
-                        id={`visitor-${visitor.id}`}
-                        name="visitorIds"
-                        value={visitor.id}
-                        checked={selectedVisitorIds.includes(visitor.id)}
-                        onChange={() => handleVisitorChange(visitor.id)}
-                        className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                        aria-labelledby={`visitor-${visitor.id}-name`}
-                      />
-                      <label
-                        id={`visitor-${visitor.id}-name`}
-                        htmlFor={`visitor-${visitor.id}`}
-                        className="ml-3 block text-sm font-medium text-gray-700"
+            <fieldset disabled={!isEmailVerified} className="space-y-6">
+              <Form method="post" className="space-y-6">
+                <div>
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Select Visitors
+                  </label>
+                  <div className="mt-2 max-h-60 overflow-y-auto border border-gray-300 rounded-md p-2">
+                    {visitors.map((visitor) => (
+                      <div
+                        key={visitor.id}
+                        className="flex items-center p-2 hover:bg-gray-50"
                       >
-                        {visitor.name}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-                {actionData?.errors && 'visitorIds' in actionData.errors && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {actionData.errors.visitorIds}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-                <label
-                  htmlFor="locationId"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Select Park
-                </label>
-                <select
-                  id="locationId"
-                  name="locationId"
-                  value={locationId}
-                  onChange={(e) => setLocationId(e.target.value)}
-                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-                >
-                  <option value="" disabled>
-                    Select a park...
-                  </option>
-                  {locations.map((location) => (
-                    <option key={location.id} value={location.id}>
-                      {location.name}
-                    </option>
-                  ))}
-                </select>
-                {actionData?.errors && 'locationId' in actionData.errors && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {actionData.errors.locationId}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-                <label
-                  htmlFor="durationMinutes"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Duration (minutes)
-                </label>
-                <select
-                  id="durationMinutes"
-                  name="durationMinutes"
-                  value={durationMinutes}
-                  onChange={(e) => setDurationMinutes(Number(e.target.value))}
-                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-                >
-                  <option value="30">30 minutes</option>
-                  <option value="60">1 hour</option>
-                  <option value="90">1.5 hours</option>
-                  <option value="120">2 hours</option>
-                  <option value="180">3 hours</option>
-                  <option value="240">4 hours</option>
-                </select>
-                {actionData?.errors &&
-                  'durationMinutes' in actionData.errors && (
+                        <input
+                          type="checkbox"
+                          id={`visitor-${visitor.id}`}
+                          name="visitorIds"
+                          value={visitor.id}
+                          checked={selectedVisitorIds.includes(visitor.id)}
+                          onChange={() => handleVisitorChange(visitor.id)}
+                          className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          aria-labelledby={`visitor-${visitor.id}-name`}
+                        />
+                        <label
+                          id={`visitor-${visitor.id}-name`}
+                          htmlFor={`visitor-${visitor.id}`}
+                          className="ml-3 block text-sm font-medium text-gray-700"
+                        >
+                          {visitor.name}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  {actionData?.errors && 'visitorIds' in actionData.errors && (
                     <p className="mt-1 text-sm text-red-600">
-                      {actionData.errors.durationMinutes}
+                      {actionData.errors.visitorIds}
                     </p>
                   )}
-              </div>
+                </div>
 
-              <div className="flex justify-between pt-4">
-                <a
-                  href="/"
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Cancel
-                </a>
-                <button
-                  type="submit"
-                  disabled={
-                    isSubmitting ||
-                    selectedVisitorIds.length === 0 ||
-                    !locationId
-                  }
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? 'Checking in...' : 'Check In'}
-                </button>
-              </div>
-            </Form>
+                <div>
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+                  <label
+                    htmlFor="locationId"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Select Park
+                  </label>
+                  <select
+                    id="locationId"
+                    name="locationId"
+                    value={locationId}
+                    onChange={(e) => setLocationId(e.target.value)}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                  >
+                    <option value="" disabled>
+                      Select a park...
+                    </option>
+                    {locations.map((location) => (
+                      <option key={location.id} value={location.id}>
+                        {location.name}
+                      </option>
+                    ))}
+                  </select>
+                  {actionData?.errors && 'locationId' in actionData.errors && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {actionData.errors.locationId}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+                  <label
+                    htmlFor="durationMinutes"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Duration (minutes)
+                  </label>
+                  <select
+                    id="durationMinutes"
+                    name="durationMinutes"
+                    value={durationMinutes}
+                    onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                  >
+                    <option value="30">30 minutes</option>
+                    <option value="60">1 hour</option>
+                    <option value="90">1.5 hours</option>
+                    <option value="120">2 hours</option>
+                    <option value="180">3 hours</option>
+                    <option value="240">4 hours</option>
+                  </select>
+                  {actionData?.errors &&
+                    'durationMinutes' in actionData.errors && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {actionData.errors.durationMinutes}
+                      </p>
+                    )}
+                </div>
+
+                <div className="flex justify-between pt-4">
+                  <a
+                    href="/"
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Cancel
+                  </a>
+                  <button
+                    type="submit"
+                    disabled={
+                      isSubmitting ||
+                      selectedVisitorIds.length === 0 ||
+                      !locationId
+                    }
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? 'Checking in...' : 'Check In'}
+                  </button>
+                </div>
+              </Form>
+            </fieldset>
           )}
         </div>
       </main>

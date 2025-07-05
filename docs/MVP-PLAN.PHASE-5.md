@@ -57,6 +57,8 @@ consistent and the platform resilient under higher traffic.
 5. (**27.5**) Protect privileged actions (`/checkin`, `/checkout`) behind
    verification check; show banner with resend link.
 6. (**27.6**) Job `cron:prune-verification-tokens` purges expired tokens.
+7. (**27.7**) Disable the eslint prop-spreading rule globally and remove any
+   eslint-disable-\* comments to bypass it.
 
 ### 3.5 Testing (WBS-28)
 

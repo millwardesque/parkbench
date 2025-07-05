@@ -55,7 +55,11 @@ describe('/profile/visitors route', () => {
       mockedPrisma.visitor.findMany.mockResolvedValue(testVisitors);
 
       const request = new Request('http://localhost/profile/visitors');
-      const response = await loader({ request, params: {}, context: {} });
+      const response = (await loader({
+        request,
+        params: {},
+        context: {},
+      })) as Response;
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -110,7 +114,11 @@ describe('/profile/visitors route', () => {
         body: formData,
       });
 
-      const response = await action({ request, params: {}, context: {} });
+      const response = (await action({
+        request,
+        params: {},
+        context: {},
+      })) as Response;
       const data = (await response.json()) as { ok: boolean };
 
       expect(response.status).toBe(200);
@@ -137,7 +145,11 @@ describe('/profile/visitors route', () => {
         body: formData,
       });
 
-      const response = await action({ request, params: {}, context: {} });
+      const response = (await action({
+        request,
+        params: {},
+        context: {},
+      })) as Response;
       const data = (await response.json()) as { ok: boolean };
 
       expect(response.status).toBe(200);
@@ -161,7 +173,11 @@ describe('/profile/visitors route', () => {
         body: formData,
       });
 
-      const response = await action({ request, params: {}, context: {} });
+      const response = (await action({
+        request,
+        params: {},
+        context: {},
+      })) as Response;
       const data = (await response.json()) as { ok: boolean };
 
       expect(response.status).toBe(200);

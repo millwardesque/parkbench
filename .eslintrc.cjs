@@ -53,6 +53,9 @@ module.exports = {
         'plugin:react-hooks/recommended',
         'plugin:jsx-a11y/recommended',
       ],
+      rules: {
+        'react/jsx-props-no-spreading': 'off',
+      },
       settings: {
         react: {
           version: 'detect',

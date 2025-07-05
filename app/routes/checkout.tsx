@@ -11,6 +11,7 @@ import {
 import {
   Form,
   useActionData,
+  useFetcher,
   useLoaderData,
   useNavigation,
 } from '@remix-run/react';
@@ -35,24 +36,30 @@ type ActionErrors = {
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUserId(request);
 
-  // Get all active check-ins for the user's visitors
-  const activeCheckins = await prisma.checkin.findMany({
-    where: {
-      deleted_at: null,
-      actual_checkout_at: null,
-      visitor: {
-        owner_id: userId,
+  // Get user and all active check-ins for the user's visitors
+  const [user, activeCheckins] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId } }),
+    prisma.checkin.findMany({
+      where: {
         deleted_at: null,
+        actual_checkout_at: null,
+        visitor: {
+          owner_id: userId,
+          deleted_at: null,
+        },
       },
-    },
-    include: {
-      visitor: true,
-      location: true,
-    },
-    orderBy: [{ location: { name: 'asc' } }, { visitor: { name: 'asc' } }],
-  });
+      include: {
+        visitor: true,
+        location: true,
+      },
+      orderBy: [{ location: { name: 'asc' } }, { visitor: { name: 'asc' } }],
+    }),
+  ]);
 
-  return json({ activeCheckins });
+  return json({
+    activeCheckins,
+    isEmailVerified: !!user?.email_verified_at,
+  });
 }
 
 export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
@@ -126,8 +133,39 @@ export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
   }
 });
 
+function ResendVerificationBanner() {
+  const fetcher = useFetcher<{ success: boolean }>();
+  const isSubmitting = fetcher.state === 'submitting';
+  const isSuccess = fetcher.data?.success;
+
+  return (
+    <div className="mb-4 p-4 border border-yellow-400 bg-yellow-50 rounded-md text-yellow-700">
+      <p className="font-bold">Email Verification Required</p>
+      <p className="mb-2">
+        Please verify your email address to check out visitors. If you
+        didn&apos;t receive an email, you can request another one.
+      </p>
+      {isSuccess ? (
+        <p className="font-semibold text-green-700">
+          A new verification email has been sent. Please check your inbox.
+        </p>
+      ) : (
+        <fetcher.Form method="post" action="/auth/resend-verification">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50"
+          >
+            {isSubmitting ? 'Sending...' : 'Resend Verification Email'}
+          </button>
+        </fetcher.Form>
+      )}
+    </div>
+  );
+}
+
 export default function CheckOutPage() {
-  const { activeCheckins } = useLoaderData<typeof loader>();
+  const { activeCheckins, isEmailVerified } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
@@ -150,148 +188,159 @@ export default function CheckOutPage() {
       setSelectedCheckinIds([]);
     } else {
       // Otherwise, select all
-      setSelectedCheckinIds(activeCheckins.map((checkin) => checkin.id));
+      setSelectedCheckinIds(activeCheckins.map((c) => c.id));
     }
   };
 
   // Group check-ins by location
-  const checkinsByLocation: Record<string, typeof activeCheckins> = {};
-  activeCheckins.forEach((checkin) => {
-    const locationId = checkin.location.id;
-    if (!checkinsByLocation[locationId]) {
-      checkinsByLocation[locationId] = [];
-    }
-    checkinsByLocation[locationId].push(checkin);
-  });
+  const checkinsByLocation = activeCheckins.reduce(
+    (acc, checkin) => {
+      const { location } = checkin;
+      if (!acc[location.id]) {
+        acc[location.id] = [];
+      }
+      acc[location.id].push(checkin);
+      return acc;
+    },
+    {} as Record<string, typeof activeCheckins>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">Check Out</h1>
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <h1 className="text-3xl font-bold text-gray-900">Check-out</h1>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow p-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="bg-white shadow rounded-lg p-6">
+          {!isEmailVerified && <ResendVerificationBanner />}
+
+          {actionData?.errors && 'form' in actionData.errors && (
+            <div className="mb-4 p-3 border border-red-400 bg-red-50 rounded-md text-red-700">
+              {actionData.errors.form}
+            </div>
+          )}
+
           {activeCheckins.length === 0 ? (
-            <div className="text-center py-6">
-              <p className="text-gray-500">No active check-ins to display.</p>
-              <a
-                href="/"
-                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Back to Home
-              </a>
+            <div className="text-center py-8">
+              <p className="text-gray-600">
+                You don&apos;t have any visitors currently checked in.
+              </p>
+              <p className="mt-2">
+                <a href="/checkin" className="text-blue-600 hover:underline">
+                  Check-in a visitor
+                </a>
+              </p>
             </div>
           ) : (
-            <Form method="post" className="space-y-6">
-              {actionData?.errors?.form && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                  {actionData.errors.form}
-                </div>
-              )}
-
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="text-lg font-medium text-gray-900">
-                    Select Visitors to Check Out
+            <fieldset disabled={!isEmailVerified}>
+              <Form method="post" className="space-y-6">
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-medium text-gray-900">
+                      Select check-ins to end
+                    </h2>
+                    <button
+                      type="button"
+                      onClick={handleSelectAll}
+                      className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                    >
+                      {
+                        // eslint-disable-next-line no-nested-ternary
+                        selectedCheckinIds.length === activeCheckins.length
+                          ? 'Deselect All'
+                          : 'Select All'
+                      }
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleSelectAll}
-                    className="text-sm text-blue-600 hover:text-blue-800"
+
+                  {actionData?.errors && 'checkinIds' in actionData.errors && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {actionData.errors.checkinIds}
+                    </p>
+                  )}
+
+                  <div className="space-y-6">
+                    {Object.keys(checkinsByLocation).map((locationId) => {
+                      const { location } = checkinsByLocation[locationId][0];
+                      return (
+                        <div
+                          key={locationId}
+                          className="border border-gray-200 rounded-md p-4"
+                        >
+                          <h3 className="font-medium text-gray-900 mb-3">
+                            {location.name}
+                          </h3>
+
+                          <div className="space-y-2">
+                            {checkinsByLocation[locationId].map((checkin) => {
+                              const checkinTime = new Date(
+                                checkin.checkin_at
+                              ).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              });
+
+                              return (
+                                <div
+                                  key={checkin.id}
+                                  className="flex items-center justify-between py-2 border-t border-gray-100"
+                                >
+                                  <div className="flex items-center">
+                                    <input
+                                      type="checkbox"
+                                      id={`checkin-${checkin.id}`}
+                                      name="checkinIds"
+                                      value={checkin.id}
+                                      checked={selectedCheckinIds.includes(
+                                        checkin.id
+                                      )}
+                                      onChange={() =>
+                                        handleCheckinChange(checkin.id)
+                                      }
+                                      className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                    />
+                                    <label
+                                      htmlFor={`checkin-${checkin.id}`}
+                                      className="ml-2 block text-sm text-gray-900"
+                                    >
+                                      <span className="font-medium">
+                                        {checkin.visitor.name}
+                                      </span>
+                                      <span className="ml-2 text-sm text-gray-500">
+                                        (Checked in at {checkinTime})
+                                      </span>
+                                    </label>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex justify-between pt-4">
+                  <a
+                    href="/"
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
-                    {selectedCheckinIds.length === activeCheckins.length
-                      ? 'Deselect All'
-                      : 'Select All'}
+                    Cancel
+                  </a>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || selectedCheckinIds.length === 0}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? 'Checking out...' : 'Check Out'}
                   </button>
                 </div>
-
-                {actionData?.errors?.checkinIds && (
-                  <p className="mb-4 text-sm text-red-600">
-                    {actionData.errors.checkinIds}
-                  </p>
-                )}
-
-                <div className="space-y-6">
-                  {Object.keys(checkinsByLocation).map((locationId) => {
-                    const { location } = checkinsByLocation[locationId][0];
-                    return (
-                      <div
-                        key={locationId}
-                        className="border border-gray-200 rounded-md p-4"
-                      >
-                        <h3 className="font-medium text-gray-900 mb-3">
-                          {location.name}
-                        </h3>
-
-                        <div className="space-y-2">
-                          {checkinsByLocation[locationId].map((checkin) => {
-                            const checkinTime = new Date(
-                              checkin.checkin_at
-                            ).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            });
-
-                            return (
-                              <div
-                                key={checkin.id}
-                                className="flex items-center justify-between py-2 border-t border-gray-100"
-                              >
-                                <div className="flex items-center">
-                                  <input
-                                    type="checkbox"
-                                    id={`checkin-${checkin.id}`}
-                                    name="checkinIds"
-                                    value={checkin.id}
-                                    checked={selectedCheckinIds.includes(
-                                      checkin.id
-                                    )}
-                                    onChange={() =>
-                                      handleCheckinChange(checkin.id)
-                                    }
-                                    className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                  />
-                                  <label
-                                    htmlFor={`checkin-${checkin.id}`}
-                                    className="ml-2 block text-sm text-gray-900"
-                                  >
-                                    <span className="font-medium">
-                                      {checkin.visitor.name}
-                                    </span>
-                                    <span className="ml-2 text-sm text-gray-500">
-                                      (Checked in at {checkinTime})
-                                    </span>
-                                  </label>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="flex justify-between pt-4">
-                <a
-                  href="/"
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Cancel
-                </a>
-                <button
-                  type="submit"
-                  disabled={isSubmitting || selectedCheckinIds.length === 0}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? 'Checking out...' : 'Check Out'}
-                </button>
-              </div>
-            </Form>
+              </Form>
+            </fieldset>
           )}
         </div>
       </main>

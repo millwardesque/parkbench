@@ -1,6 +1,8 @@
+import type { User } from '@prisma/client';
 import { createHash, randomBytes } from 'crypto';
 import prisma from '~/utils/db.server';
 import sendEmail from '~/services/email.server';
+import verificationUtils from '~/utils/verification.server';
 
 const TOKEN_EXPIRATION_MINUTES = 10;
 
@@ -47,14 +49,14 @@ export async function createUser(
   name: string,
   email: string,
   visitorNames: string[]
-) {
+): Promise<User> {
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) {
     throw new Error('A user with this email already exists.');
   }
 
-  return prisma.$transaction(async (tx) => {
-    const user = await tx.user.create({
+  const user = await prisma.$transaction(async (tx) => {
+    const newUser = await tx.user.create({
       data: { name, email },
     });
 
@@ -62,12 +64,36 @@ export async function createUser(
       await tx.visitor.createMany({
         data: visitorNames.map((visitorName) => ({
           name: visitorName,
-          owner_id: user.id,
+          owner_id: newUser.id,
         })),
       });
     }
 
-    return user;
+    return newUser;
+  });
+
+  // Generate verification token and return the user
+  return verificationUtils.createEmailVerificationToken(user.id);
+}
+
+/**
+ * Generates a verification link and sends it to the user's email.
+ */
+export async function sendVerificationEmail(request: Request, user: User) {
+  if (!user.email_verification_token) {
+    // This should not happen if called right after user creation
+    throw new Error('User does not have a verification token.');
+  }
+
+  const url = new URL(request.url);
+  const verificationLink = new URL('/auth/verify', url.origin);
+  verificationLink.searchParams.set('token', user.email_verification_token);
+
+  await sendEmail({
+    to: user.email,
+    subject: 'Verify your email for Parkbench',
+    html: `Hello!<br><br>Click this link to verify your email and activate your Parkbench account: <a href="${verificationLink.toString()}">Verify Email</a>. This link will expire in 1 hour.`,
+    text: `Hello!\n\nCopy and paste this URL into your browser to verify your email and activate your Parkbench account: ${verificationLink.toString()}\nThis link will expire in 1 hour.`,
   });
 }
 

@@ -20,6 +20,10 @@ model User {
   updated_at DateTime  @updatedAt @map("updated_at")
   deleted_at DateTime? @map("deleted_at")
   
+  email_verified_at                  DateTime? @map("email_verified_at")
+  email_verification_token           String?   @unique @map("email_verification_token")
+  email_verification_token_expires_at DateTime? @map("email_verification_token_expires_at")
+
   // Relations
   visitors   Visitor[]
 

@@ -1,16 +1,21 @@
 import {
   json,
   type ActionFunctionArgs,
+  type LoaderFunctionArgs,
   type MetaFunction,
 } from '@remix-run/node';
-import { useFetcher } from '@remix-run/react';
+import { useFetcher, useLoaderData } from '@remix-run/react';
 import { z } from 'zod';
-import { useForm, getFormProps } from '@conform-to/react';
+import { useForm, getFormProps, getInputProps } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import AuthForm from '~/components/AuthForm';
 import prisma from '~/utils/db.server';
 import { sendMagicLink } from '~/lib/auth.server';
+import { getSession, commitSession } from '~/lib/session.server';
 import { withRateLimit } from '~/utils/limiter.server';
+
+const inputClassName =
+  'w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500';
 
 // Define the validation schema for the sign-in form
 const SignInSchema = z.object({
@@ -20,6 +25,21 @@ const SignInSchema = z.object({
 });
 
 export const meta: MetaFunction = () => [{ title: 'Sign In | Parkbench' }];
+
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const session = await getSession(request);
+  const successMessage = session.get('successMessage') || null;
+  const errorMessage = session.get('errorMessage') || null;
+
+  return json(
+    { successMessage, errorMessage },
+    {
+      headers: {
+        'Set-Cookie': await commitSession(session),
+      },
+    }
+  );
+};
 
 export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
@@ -50,6 +70,7 @@ export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
 });
 
 export default function SignInRoute() {
+  const { successMessage, errorMessage } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const [form, fields] = useForm({
     id: 'signin-form',
@@ -65,24 +86,34 @@ export default function SignInRoute() {
 
   return (
     <AuthForm title="Sign In to your Account">
-      {/* The `getFormProps` helper is designed to be used with the spread operator. */}
-      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
       <fetcher.Form method="post" {...getFormProps(form)}>
+        {successMessage && (
+          <div
+            className="p-4 mb-4 text-sm text-green-700 bg-green-100 rounded-lg"
+            role="alert"
+          >
+            {successMessage}
+          </div>
+        )}
+        {errorMessage && (
+          <div
+            className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg"
+            role="alert"
+          >
+            {errorMessage}
+          </div>
+        )}
         <div className="space-y-4">
           <div>
+            {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
             <label
               htmlFor={fields.email.id}
               className="block text-sm font-medium text-gray-700"
             >
               Email
-              {/* Due to the design of conform library, we need to spread props which is required for proper form handling */}
               <input
-                type="email"
-                id={fields.email.id}
-                name={fields.email.name}
-                aria-invalid={Boolean(fields.email.errors)}
-                aria-describedby={fields.email.errorId}
-                className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-white"
+                {...getInputProps(fields.email, { type: 'email' })}
+                className={inputClassName}
               />
             </label>
             <div id={fields.email.errorId} className="text-sm text-red-600">

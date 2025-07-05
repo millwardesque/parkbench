@@ -32,6 +32,9 @@ export const sessionStorage = createCookieSessionStorage({
   cookie: sessionCookie,
 });
 
+// Export these for direct usage in other modules
+export const { getSession, commitSession, destroySession } = sessionStorage;
+
 const USER_SESSION_KEY = 'userId';
 
 /**

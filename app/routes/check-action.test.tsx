@@ -66,7 +66,11 @@ describe('Check-in/Check-out Action', () => {
         body: formData,
       });
 
-      const response = await action({ request, context: {}, params: {} });
+      const response = (await action({
+        request,
+        context: {},
+        params: {},
+      })) as Response;
 
       expect(response.status).toBe(302); // Redirect status
       expect(response.headers.get('Location')).toBe('/');
@@ -95,7 +99,11 @@ describe('Check-in/Check-out Action', () => {
         body: formData,
       });
 
-      const response = await action({ request, context: {}, params: {} });
+      const response = (await action({
+        request,
+        context: {},
+        params: {},
+      })) as Response;
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -128,7 +136,11 @@ describe('Check-in/Check-out Action', () => {
         body: formData,
       });
 
-      const response = await action({ request, context: {}, params: {} });
+      const response = (await action({
+        request,
+        context: {},
+        params: {},
+      })) as Response;
 
       expect(response.status).toBe(302); // Redirect status
       expect(response.headers.get('Location')).toBe('/');
@@ -154,7 +166,11 @@ describe('Check-in/Check-out Action', () => {
         body: formData,
       });
 
-      const response = await action({ request, context: {}, params: {} });
+      const response = (await action({
+        request,
+        context: {},
+        params: {},
+      })) as Response;
       const data = await response.json();
 
       expect(response.status).toBe(404);
