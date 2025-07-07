@@ -2,7 +2,7 @@ import type { User } from '@prisma/client';
 import { createHash, randomBytes } from 'crypto';
 import prisma from '~/utils/db.server';
 import sendEmail from '~/services/email.server';
-import verificationUtils from '~/utils/verification.server';
+import * as verificationUtils from '~/utils/verification.server';
 
 const TOKEN_EXPIRATION_MINUTES = 10;
 

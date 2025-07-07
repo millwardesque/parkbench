@@ -49,7 +49,14 @@
 - [ ] Implement Prisma middleware for soft deletes.
 - [ ] Add rate limiting and email verification.
 
-### Phase 6: Testing & Deployment
+### Phase 6: Extras
+
+- [ ] Add a "Check in everyone" feature on the homepage
+- [ ] Add a "Check out everyone" feature on the homepage
+- [ ] Implement resend integration for email for magic links
+- [ ] Remove all email verification logic and features, the magic link is sufficient
+
+### Phase 7: Testing & Deployment
 
 - [ ] Write unit tests for critical backend logic.
 - [ ] Write E2E tests for main user flows.

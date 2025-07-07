@@ -1,25 +1,42 @@
 // scripts/cron.ts
+/* eslint-disable no-console */
+
 import 'dotenv/config';
 import { expireStaleCheckins } from '../app/utils/checkin.server';
+import { pruneExpiredVerificationTokens } from '../app/utils/user.server';
 import prisma from '../app/utils/db.server';
 
 async function run() {
-  // eslint-disable-next-line no-console
-  console.log('Running cron job: expiring stale check-ins...');
+  console.log('Starting cron jobs...');
+
+  // Execute expire stale checkins
   try {
-    const count = await expireStaleCheckins();
+    const expiredCheckins = await expireStaleCheckins();
+    console.log(`Expired ${expiredCheckins} stale check-ins.`);
     const now = new Date();
     await prisma.cronJobRun.upsert({
       where: { job_name: 'expire_stale_checkins' },
       update: { last_run_at: now },
       create: { job_name: 'expire_stale_checkins', last_run_at: now },
     });
-    // eslint-disable-next-line no-console
-    console.log(`Successfully expired ${count} stale check-in(s).`);
   } catch (error) {
     // eslint-disable-next-line no-console
-    console.error('Error running cron job:', error);
-    process.exit(1);
+    console.error('Error expiring stale checkins:', error);
+  }
+
+  // Prune expired email verification tokens
+  try {
+    const prunedTokens = await pruneExpiredVerificationTokens();
+    console.log(`Pruned ${prunedTokens} expired verification tokens.`);
+    const now = new Date();
+    await prisma.cronJobRun.upsert({
+      where: { job_name: 'prune_expired_tokens' },
+      update: { last_run_at: now },
+      create: { job_name: 'prune_expired_tokens', last_run_at: now },
+    });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Error pruning expired verification tokens:', error);
   }
 }
 

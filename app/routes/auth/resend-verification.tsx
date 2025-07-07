@@ -1,6 +1,6 @@
 import { json, type ActionFunctionArgs } from '@remix-run/node';
 import { requireUserId } from '~/utils/session.server';
-import verificationUtils from '~/utils/verification.server';
+import * as verificationUtils from '~/utils/verification.server';
 import { sendVerificationEmail } from '~/lib/auth.server';
 import prisma from '~/utils/db.server';
 
