@@ -51,8 +51,8 @@
 
 ### Phase 6: Extras
 
-- [ ] Add a "Check in everyone" feature on the homepage
-- [ ] Add a "Check out everyone" feature on the homepage
+- [ ] Add a "Check in everyone" feature on the homepage that checks in all of the current user's visitors
+- [ ] Add a "Check out everyone" feature on the homepage that checks out all of the current user's visitors
 - [ ] Implement resend integration for email for magic links
 - [ ] Remove all email verification logic and features, the magic link is sufficient
 
