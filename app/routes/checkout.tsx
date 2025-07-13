@@ -11,7 +11,6 @@ import {
 import {
   Form,
   useActionData,
-  useFetcher,
   useLoaderData,
   useNavigation,
 } from '@remix-run/react';
@@ -36,9 +35,9 @@ type ActionErrors = {
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUserId(request);
 
-  // Get user and all active check-ins for the user's visitors
-  const [user, activeCheckins] = await Promise.all([
-    prisma.user.findUnique({ where: { id: userId } }),
+  // Get all active check-ins for the user's visitors
+  const [activeCheckins] = await Promise.all([
+    // User query removed as part of WBS-62
     prisma.checkin.findMany({
       where: {
         deleted_at: null,
@@ -58,7 +57,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return json({
     activeCheckins,
-    isEmailVerified: !!user?.email_verified_at,
   });
 }
 
@@ -133,39 +131,10 @@ export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
   }
 });
 
-function ResendVerificationBanner() {
-  const fetcher = useFetcher<{ success: boolean }>();
-  const isSubmitting = fetcher.state === 'submitting';
-  const isSuccess = fetcher.data?.success;
-
-  return (
-    <div className="mb-4 p-4 border border-yellow-400 bg-yellow-50 rounded-md text-yellow-700">
-      <p className="font-bold">Email Verification Required</p>
-      <p className="mb-2">
-        Please verify your email address to check out visitors. If you
-        didn&apos;t receive an email, you can request another one.
-      </p>
-      {isSuccess ? (
-        <p className="font-semibold text-green-700">
-          A new verification email has been sent. Please check your inbox.
-        </p>
-      ) : (
-        <fetcher.Form method="post" action="/auth/resend-verification">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50"
-          >
-            {isSubmitting ? 'Sending...' : 'Resend Verification Email'}
-          </button>
-        </fetcher.Form>
-      )}
-    </div>
-  );
-}
+// Email verification component removed as part of WBS-62
 
 export default function CheckOutPage() {
-  const { activeCheckins, isEmailVerified } = useLoaderData<typeof loader>();
+  const { activeCheckins } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
@@ -215,7 +184,7 @@ export default function CheckOutPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="bg-white shadow rounded-lg p-6">
-          {!isEmailVerified && <ResendVerificationBanner />}
+          {/* Email verification banner removed as part of WBS-62 */}
 
           {actionData?.errors && 'form' in actionData.errors && (
             <div className="mb-4 p-3 border border-red-400 bg-red-50 rounded-md text-red-700">
@@ -235,7 +204,7 @@ export default function CheckOutPage() {
               </p>
             </div>
           ) : (
-            <fieldset disabled={!isEmailVerified}>
+            <fieldset className="space-y-6">
               <Form method="post" className="space-y-6">
                 <div>
                   <div className="flex justify-between items-center mb-4">

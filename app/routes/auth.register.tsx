@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { useForm, getFormProps, getInputProps } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import AuthForm from '~/components/AuthForm';
-import { createUser, sendVerificationEmail } from '~/lib/auth.server';
+import { createUser } from '~/lib/auth.server';
 import { getSession, commitSession } from '~/lib/session.server';
 import { withRateLimit } from '~/utils/limiter.server';
 
@@ -66,13 +66,11 @@ export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
 
   try {
     // `visitors` is now guaranteed to be a string[] by the schema transform.
-    const user = await createUser(name, email, visitors);
-    await sendVerificationEmail(request, user);
+    await createUser(name, email, visitors);
 
     return json({
       ...submission.reply({ resetForm: true }),
-      successMessage:
-        'Success! Please check your email to verify your account.',
+      successMessage: 'Success! Your account has been created.',
     });
   } catch (error) {
     // Handle duplicate email error

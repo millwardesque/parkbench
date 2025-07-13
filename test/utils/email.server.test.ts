@@ -1,9 +1,7 @@
 /* eslint-disable no-console */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import sendEmail, {
-  createVerificationEmail,
-} from '../../app/utils/email.server';
+import sendEmail from '../../app/utils/email.server';
 
 // Mock fetch for testing API calls
 vi.stubGlobal('fetch', vi.fn());
@@ -26,52 +24,7 @@ describe('Email utilities', () => {
     process.env = originalEnv;
   });
 
-  describe('createVerificationEmail', () => {
-    it('should create email with correct properties', () => {
-      // Setup
-      const to = 'test@example.com';
-      const token = 'verification-token-123';
-      const baseUrl = 'https://parkbench.example.com';
-
-      // Execute
-      const email = createVerificationEmail(to, token, baseUrl);
-
-      // Assert
-      expect(email).toEqual({
-        to: 'test@example.com',
-        subject: expect.stringContaining('Verify'),
-        html: expect.stringContaining(`${baseUrl}/verify-email?token=${token}`),
-        text: expect.stringContaining(`${baseUrl}/verify-email?token=${token}`),
-      });
-
-      // Check that HTML contains a styled button
-      expect(email.html).toContain('style=');
-      expect(email.html).toContain('Verify my email');
-
-      // Check that plain text version is properly formatted
-      expect(email.text).toContain('Verify your email address');
-      expect(email.text).not.toContain('style=');
-    });
-
-    it('should properly encode tokens in URLs', () => {
-      // Setup - use a token with characters that need encoding
-      const to = 'test@example.com';
-      const token = 'token+with/special?chars&';
-      const baseUrl = 'https://parkbench.example.com';
-
-      // Execute
-      const email = createVerificationEmail(to, token, baseUrl);
-
-      // Assert - check that token is properly encoded in URLs
-      const encodedToken = encodeURIComponent(token);
-      expect(email.html).toContain(
-        `${baseUrl}/verify-email?token=${encodedToken}`
-      );
-      expect(email.text).toContain(
-        `${baseUrl}/verify-email?token=${encodedToken}`
-      );
-    });
-  });
+  // Email verification tests removed as part of WBS-62
 
   describe('sendEmail', () => {
     const emailOptions = {

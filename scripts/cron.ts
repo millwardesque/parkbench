@@ -3,7 +3,7 @@
 
 import 'dotenv/config';
 import { expireStaleCheckins } from '../app/utils/checkin.server';
-import { pruneExpiredVerificationTokens } from '../app/utils/user.server';
+// Email verification imports removed as part of WBS-62
 import prisma from '../app/utils/db.server';
 
 async function run() {
@@ -24,20 +24,7 @@ async function run() {
     console.error('Error expiring stale checkins:', error);
   }
 
-  // Prune expired email verification tokens
-  try {
-    const prunedTokens = await pruneExpiredVerificationTokens();
-    console.log(`Pruned ${prunedTokens} expired verification tokens.`);
-    const now = new Date();
-    await prisma.cronJobRun.upsert({
-      where: { job_name: 'prune_expired_tokens' },
-      update: { last_run_at: now },
-      create: { job_name: 'prune_expired_tokens', last_run_at: now },
-    });
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error pruning expired verification tokens:', error);
-  }
+  // Email verification token pruning removed as part of WBS-62
 }
 
 async function watch() {

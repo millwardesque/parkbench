@@ -2,7 +2,7 @@ import type { User } from '@prisma/client';
 import { createHash, randomBytes } from 'crypto';
 import prisma from '~/utils/db.server';
 import sendEmail from '~/services/email.server';
-import * as verificationUtils from '~/utils/verification.server';
+// Email verification utils removed as part of WBS-62
 
 const TOKEN_EXPIRATION_MINUTES = 10;
 
@@ -72,30 +72,11 @@ export async function createUser(
     return newUser;
   });
 
-  // Generate verification token and return the user
-  return verificationUtils.createEmailVerificationToken(user.id);
+  // Return the user (email verification removed as part of WBS-62)
+  return user;
 }
 
-/**
- * Generates a verification link and sends it to the user's email.
- */
-export async function sendVerificationEmail(request: Request, user: User) {
-  if (!user.email_verification_token) {
-    // This should not happen if called right after user creation
-    throw new Error('User does not have a verification token.');
-  }
-
-  const url = new URL(request.url);
-  const verificationLink = new URL('/auth/verify', url.origin);
-  verificationLink.searchParams.set('token', user.email_verification_token);
-
-  await sendEmail({
-    to: user.email,
-    subject: 'Verify your email for Parkbench',
-    html: `Hello!<br><br>Click this link to verify your email and activate your Parkbench account: <a href="${verificationLink.toString()}">Verify Email</a>. This link will expire in 1 hour.`,
-    text: `Hello!\n\nCopy and paste this URL into your browser to verify your email and activate your Parkbench account: ${verificationLink.toString()}\nThis link will expire in 1 hour.`,
-  });
-}
+// Email verification function removed as part of WBS-62
 
 /**
  * Generates a magic link and sends it to the user's email.

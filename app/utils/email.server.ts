@@ -13,44 +13,7 @@ interface EmailOptions {
   from?: string;
 }
 
-/**
- * Creates an email verification message.
- * @param to - The recipient email address.
- * @param token - The verification token.
- * @param baseUrl - The base URL for the verification link.
- */
-export function createVerificationEmail(
-  to: string,
-  token: string,
-  baseUrl: string
-) {
-  const verificationUrl = `${baseUrl}/verify-email?token=${encodeURIComponent(token)}`;
-
-  return {
-    to,
-    subject: 'Verify your email address for Parkbench',
-    html: `
-      <h1>Verify your email address</h1>
-      <p>Thanks for signing up for Parkbench! Please verify your email address by clicking the link below:</p>
-      <p><a href="${verificationUrl}" style="background-color: #4CAF50; color: white; padding: 14px 20px; text-align: center; text-decoration: none; display: inline-block; border-radius: 4px;">Verify my email</a></p>
-      <p>Or copy and paste this URL into your browser:</p>
-      <p>${verificationUrl}</p>
-      <p>This link will expire in 24 hours.</p>
-      <p>If you didn't sign up for Parkbench, you can safely ignore this email.</p>
-    `,
-    text: `
-      Verify your email address
-
-      Thanks for signing up for Parkbench! Please verify your email address by clicking the link below:
-
-      ${verificationUrl}
-
-      This link will expire in 24 hours.
-
-      If you didn't sign up for Parkbench, you can safely ignore this email.
-    `,
-  };
-}
+// Email verification function removed as part of WBS-62
 
 /**
  * Sends an email using Resend API.

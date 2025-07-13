@@ -304,9 +304,9 @@ export default function Index() {
               />
             </div>
 
-            {/* Add navigation CTA button for Check-in (WBS-20) */}
+            {/* Add navigation CTA buttons for Check-in and bulk operations */}
             {locations.length > 0 && (
-              <div className="mt-6 text-center">
+              <div className="mt-6 text-center space-x-4">
                 <Link
                   to="/checkin"
                   className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -314,6 +314,30 @@ export default function Index() {
                 >
                   Check-in
                 </Link>
+
+                {/* Mass check-in button (WBS-60) */}
+                <Form action="/checkin-all" method="post" className="inline">
+                  <input type="hidden" name="csrf" value={csrf} />
+                  <button
+                    type="submit"
+                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    aria-label="Check in all visitors at once"
+                  >
+                    Check-in Everyone
+                  </button>
+                </Form>
+
+                {/* Mass check-out button (WBS-61) */}
+                <Form action="/checkout-all" method="post" className="inline">
+                  <input type="hidden" name="csrf" value={csrf} />
+                  <button
+                    type="submit"
+                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    aria-label="Check out all visitors at once"
+                  >
+                    Check-out Everyone
+                  </button>
+                </Form>
               </div>
             )}
           </section>

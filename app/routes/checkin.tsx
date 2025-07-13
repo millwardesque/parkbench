@@ -12,7 +12,6 @@ import {
 import {
   Form,
   useActionData,
-  useFetcher,
   useLoaderData,
   useNavigation,
   useSearchParams,
@@ -51,7 +50,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const parkId = url.searchParams.get('parkId');
 
   // Get user, locations, and visitors
-  const [user, locations, visitors] = await Promise.all([
+  const [, locations, visitors] = await Promise.all([
     prisma.user.findUnique({ where: { id: userId } }),
     prisma.location.findMany({
       where: { deleted_at: null },
@@ -85,7 +84,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
     locations,
     visitors,
     preselectedParkId,
-    isEmailVerified: !!user?.email_verified_at,
   });
 }
 
@@ -177,39 +175,8 @@ export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
   });
 });
 
-function ResendVerificationBanner() {
-  const fetcher = useFetcher<{ success: boolean }>();
-  const isSubmitting = fetcher.state === 'submitting';
-  const isSuccess = fetcher.data?.success;
-
-  return (
-    <div className="mb-4 p-4 border border-yellow-400 bg-yellow-50 rounded-md text-yellow-700">
-      <p className="font-bold">Email Verification Required</p>
-      <p className="mb-2">
-        Please verify your email address to check in visitors. If you
-        didn&apos;t receive an email, you can request another one.
-      </p>
-      {isSuccess ? (
-        <p className="font-semibold text-green-700">
-          A new verification email has been sent. Please check your inbox.
-        </p>
-      ) : (
-        <fetcher.Form method="post" action="/auth/resend-verification">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50"
-          >
-            {isSubmitting ? 'Sending...' : 'Resend Verification Email'}
-          </button>
-        </fetcher.Form>
-      )}
-    </div>
-  );
-}
-
 export default function CheckInPage() {
-  const { locations, visitors, preselectedParkId, isEmailVerified } =
+  const { locations, visitors, preselectedParkId } =
     useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -256,7 +223,7 @@ export default function CheckInPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="bg-white shadow rounded-lg p-6">
-          {!isEmailVerified && <ResendVerificationBanner />}
+          {/* Email verification banner removed as part of WBS-62 */}
 
           {actionData?.errors && 'form' in actionData.errors && (
             <div className="mb-4 p-3 border border-red-400 bg-red-50 rounded-md text-red-700">
@@ -279,7 +246,7 @@ export default function CheckInPage() {
               </p>
             </div>
           ) : (
-            <fieldset disabled={!isEmailVerified} className="space-y-6">
+            <fieldset className="space-y-6">
               <Form method="post" className="space-y-6">
                 <div>
                   {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
