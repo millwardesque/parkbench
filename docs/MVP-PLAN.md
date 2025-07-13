@@ -56,7 +56,19 @@
 - [x] Implement resend integration for email for magic links
 - [x] Remove all email verification logic and features, the magic link is sufficient
 
-### Phase 7: Testing & Deployment
+### Phase 7: Database Migration to Postgres
+
+- [ ] Prepare environment for Postgres (install driver, provision DB)
+- [ ] Update `.env` with Postgres connection string
+- [ ] Change Prisma datasource provider to `postgresql` in `schema.prisma`
+- [ ] Generate and run initial Postgres migration
+- [ ] Migrate existing data (if needed)
+- [ ] Update scripts, CI, and deployment configs to use Postgres
+- [ ] Remove SQLite files and references
+- [ ] Verify application code for compatibility
+- [ ] Commit migration and update documentation
+
+### Phase 8: Testing & Deployment
 
 - [ ] Write unit tests for critical backend logic.
 - [ ] Write E2E tests for main user flows.
