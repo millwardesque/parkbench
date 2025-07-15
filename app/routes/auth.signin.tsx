@@ -4,7 +4,7 @@ import {
   type LoaderFunctionArgs,
   type MetaFunction,
 } from '@remix-run/node';
-import { useFetcher, useLoaderData } from '@remix-run/react';
+import { useFetcher, useLoaderData, Link } from '@remix-run/react';
 import { z } from 'zod';
 import { useForm, getFormProps, getInputProps } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
@@ -13,9 +13,6 @@ import prisma from '~/utils/db.server';
 import { sendMagicLink } from '~/lib/auth.server';
 import { getSession, commitSession } from '~/lib/session.server';
 import { withRateLimit } from '~/utils/limiter.server';
-
-const inputClassName =
-  'w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500';
 
 // Define the validation schema for the sign-in form
 const SignInSchema = z.object({
@@ -52,6 +49,8 @@ export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
   const { email } = submission.value;
 
   const user = await prisma.user.findUnique({ where: { email } });
+
+  console.log('[CPM] Sign-in action called', email, submission, user); // @DEBUG
 
   // To prevent email enumeration, we always act like the request was successful.
   // If the user exists, we send the email. If not, we do nothing.
@@ -113,7 +112,7 @@ export default function SignInRoute() {
               Email
               <input
                 {...getInputProps(fields.email, { type: 'email' })}
-                className={inputClassName}
+                className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
               />
             </label>
             <div id={fields.email.errorId} className="text-sm text-red-600">
@@ -133,6 +132,12 @@ export default function SignInRoute() {
             Send Magic Link
           </button>
         )}
+        <p className="mt-4 text-center text-sm text-gray-600">
+          Don&apos;t have an account?{' '}
+          <Link to="/auth/register" className="text-indigo-600 hover:underline">
+            Register
+          </Link>
+        </p>
       </fetcher.Form>
     </AuthForm>
   );

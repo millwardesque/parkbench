@@ -89,6 +89,8 @@ export async function sendMagicLink(request: Request, email: string) {
   magicLink.searchParams.set('token', token);
   magicLink.searchParams.set('email', email); // For easier lookup on the callback
 
+  console.log('[CPM] Magic link generated: ', magicLink.toString()); // @DEBUG
+
   // In development, log the magic link to the console
   if (process.env.NODE_ENV === 'development') {
     // eslint-disable-next-line no-console

@@ -1,0 +1,3 @@
+- Need a "Check your email" banner when the user clicks the Send Magic Link button
+- Check-in-for-everyone should be in the Your Visitors section
+- Check-in-for-everyone should only appear if there's only one visitor

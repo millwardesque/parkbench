@@ -164,27 +164,6 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">Parkbench</h1>
-          <div className="flex items-center gap-4">
-            <Link
-              to="/profile/visitors"
-              className="text-sm font-medium text-gray-600 hover:text-gray-900"
-            >
-              Profile
-            </Link>
-            <Form action="/sign-out" method="post">
-              <button
-                type="submit"
-                className="text-sm font-medium text-gray-600 hover:text-gray-900"
-              >
-                Sign Out
-              </button>
-            </Form>
-          </div>
-        </div>
-      </header>
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <section>

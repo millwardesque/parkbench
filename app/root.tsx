@@ -103,7 +103,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body className="h-full">
         <Navigation isAuthenticated={isAuthenticated} />
-        <div className="pt-16">{children}</div>
+        {children}
         <ScrollRestoration />
         <ToastFromHeaders />
         <Scripts />

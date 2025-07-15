@@ -65,7 +65,7 @@ export default function Navigation({ isAuthenticated }: NavigationProps) {
 
               {!isAuthenticated ? (
                 <Link
-                  to="/login"
+                  to="/auth/signin"
                   className="px-4 py-2 rounded-md text-sm font-medium bg-white text-blue-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white"
                   aria-label="Log in to your account"
                 >
@@ -73,7 +73,7 @@ export default function Navigation({ isAuthenticated }: NavigationProps) {
                 </Link>
               ) : (
                 <Link
-                  to="/logout"
+                  to="/sign-out"
                   className="px-3 py-2 rounded-md text-sm font-medium text-white hover:bg-blue-500"
                   aria-label="Log out of your account"
                 >
@@ -185,7 +185,7 @@ export default function Navigation({ isAuthenticated }: NavigationProps) {
             </Link>
           ) : (
             <Link
-              to="/logout"
+              to="/sign-out"
               className="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-blue-500"
               aria-label="Log out of your account"
             >

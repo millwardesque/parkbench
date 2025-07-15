@@ -1,5 +1,4 @@
-import type { ActionFunctionArgs } from '@remix-run/node';
-import { redirect } from '@remix-run/node';
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
 import { logout } from '~/utils/session.server';
 import { withRateLimit } from '~/utils/limiter.server';
 
@@ -7,6 +6,6 @@ export const action = withRateLimit(async ({ request }: ActionFunctionArgs) =>
   logout(request)
 );
 
-export function loader() {
-  return redirect('/');
+export async function loader({ request }: LoaderFunctionArgs) {
+  return logout(request);
 }
