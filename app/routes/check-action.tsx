@@ -1,10 +1,10 @@
 /* eslint-disable import/prefer-default-export */
 import { parseWithZod } from '@conform-to/zod';
-import { ActionFunctionArgs, json, redirect } from '@remix-run/node';
+import { ActionFunctionArgs, redirect } from '@remix-run/node';
 import { z } from 'zod';
 import prisma from '~/utils/db.server';
 import { requireUserId, validateCsrfToken } from '~/utils/session.server';
-import { broadcastEvent } from '~/routes/api/events';
+import { broadcastEvent } from '~/routes/api.events';
 import { getCachedActiveCheckins } from '~/utils/checkin.server';
 import { withRateLimit } from '~/utils/limiter.server';
 
@@ -30,7 +30,7 @@ export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
   const submission = parseWithZod(formData, { schema });
 
   if (submission.status !== 'success') {
-    return json(submission.reply());
+    return submission.reply();
   }
 
   const { intent } = submission.value;
@@ -43,9 +43,13 @@ export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
     });
 
     if (!visitor) {
-      return json(submission.reply({ formErrors: ['Visitor not found'] }), {
-        status: 404,
-      });
+      return new Response(
+        JSON.stringify(submission.reply({ formErrors: ['Visitor not found'] })),
+        {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // Create the check-in record
@@ -73,9 +77,15 @@ export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
     });
 
     if (!checkin) {
-      return json(submission.reply({ formErrors: ['Check-in not found'] }), {
-        status: 404,
-      });
+      return new Response(
+        JSON.stringify(
+          submission.reply({ formErrors: ['Check-in not found'] })
+        ),
+        {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // Update the check-in record

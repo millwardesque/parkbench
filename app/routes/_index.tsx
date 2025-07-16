@@ -148,6 +148,7 @@ export default function Index() {
   );
 
   // Connect to SSE for real-time updates
+  // Support both routing styles (v6 folder-based and v7 dot-notation)
   useEventSource('/api/events', 'checkin:changed', handleCheckinChanged);
 
   const visitorCheckinMap = new Map<string, string | null>();
