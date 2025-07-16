@@ -4,7 +4,10 @@ import { ActionFunctionArgs, redirect } from '@remix-run/node';
 import { z } from 'zod';
 import prisma from '~/utils/db.server';
 import { requireUserId, validateCsrfToken } from '~/utils/session.server';
-import { getCachedActiveCheckins } from '~/utils/checkin.server';
+import {
+  getCachedActiveCheckins,
+  invalidateCache,
+} from '~/utils/checkin.server';
 import { withRateLimit } from '~/utils/limiter.server';
 
 const checkInSchema = z.object({
@@ -62,7 +65,8 @@ export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
       },
     });
 
-    // Get updated parks data
+    // Invalidate cache and get updated parks data
+    invalidateCache();
     await getCachedActiveCheckins();
   } else if (intent === 'check-out') {
     const { checkinId } = submission.value;
@@ -92,7 +96,8 @@ export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
       data: { actual_checkout_at: new Date() },
     });
 
-    // Get updated parks data
+    // Invalidate cache and get updated parks data
+    invalidateCache();
     await getCachedActiveCheckins();
   }
 

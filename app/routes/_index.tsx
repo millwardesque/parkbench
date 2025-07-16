@@ -127,7 +127,9 @@ export default function Index() {
   >({});
 
   // Use our custom hook for park list data with automatic refresh
-  const { parks: parksWithVisitors } = useParkList();
+  const { parks: parksWithVisitors, refresh: refreshParks } = useParkList();
+
+  // We'll use refreshParks directly in the form onSubmit handlers
 
   // Real-time updates will be implemented with polling later
 
@@ -176,7 +178,11 @@ export default function Index() {
                       </div>
                       <div>
                         {isCheckedIn ? (
-                          <Form method="post" action="/check-action">
+                          <Form
+                            method="post"
+                            action="/check-action"
+                            onSubmit={() => setTimeout(refreshParks, 500)}
+                          >
                             <input type="hidden" name="csrf" value={csrf} />
                             <input
                               type="hidden"
@@ -197,9 +203,10 @@ export default function Index() {
                           </Form>
                         ) : (
                           <Form
-                            method="post"
                             action="/check-action"
-                            className="flex items-center gap-2"
+                            method="post"
+                            className="flex space-x-2 items-center"
+                            onSubmit={() => setTimeout(refreshParks, 500)}
                           >
                             <input type="hidden" name="csrf" value={csrf} />
                             <input
@@ -276,7 +283,12 @@ export default function Index() {
                 </Link>
 
                 {/* Mass check-in button (WBS-60) */}
-                <Form action="/checkin-all" method="post" className="inline">
+                <Form
+                  action="/checkin-all"
+                  method="post"
+                  className="inline"
+                  onSubmit={() => setTimeout(refreshParks, 500)}
+                >
                   <input type="hidden" name="csrf" value={csrf} />
                   <button
                     type="submit"
@@ -288,7 +300,12 @@ export default function Index() {
                 </Form>
 
                 {/* Mass check-out button (WBS-61) */}
-                <Form action="/checkout-all" method="post" className="inline">
+                <Form
+                  action="/checkout-all"
+                  method="post"
+                  className="inline"
+                  onSubmit={() => setTimeout(refreshParks, 500)}
+                >
                   <input type="hidden" name="csrf" value={csrf} />
                   <button
                     type="submit"
