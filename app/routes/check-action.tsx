@@ -4,7 +4,6 @@ import { ActionFunctionArgs, redirect } from '@remix-run/node';
 import { z } from 'zod';
 import prisma from '~/utils/db.server';
 import { requireUserId, validateCsrfToken } from '~/utils/session.server';
-import { broadcastEvent } from '~/routes/api.events';
 import { getCachedActiveCheckins } from '~/utils/checkin.server';
 import { withRateLimit } from '~/utils/limiter.server';
 
@@ -63,9 +62,8 @@ export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
       },
     });
 
-    // Get updated parks data and broadcast the event
-    const updatedParks = await getCachedActiveCheckins();
-    broadcastEvent('checkin:changed', { parksWithVisitors: updatedParks });
+    // Get updated parks data
+    await getCachedActiveCheckins();
   } else if (intent === 'check-out') {
     const { checkinId } = submission.value;
     // Ensure the check-in record belongs to a visitor of the current user
@@ -94,9 +92,8 @@ export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
       data: { actual_checkout_at: new Date() },
     });
 
-    // Get updated parks data and broadcast the event
-    const updatedParks = await getCachedActiveCheckins();
-    broadcastEvent('checkin:changed', { parksWithVisitors: updatedParks });
+    // Get updated parks data
+    await getCachedActiveCheckins();
   }
 
   return redirect('/');

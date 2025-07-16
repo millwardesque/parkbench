@@ -1,7 +1,7 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/node';
 import { Form, Link, useLoaderData } from '@remix-run/react';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { requireUserId } from '~/utils/session.server';
 import prisma from '~/utils/db.server';
 import {
@@ -10,7 +10,6 @@ import {
 } from '~/utils/checkin.server';
 import type { Location, Visitor, Checkin } from '@prisma/client';
 import useParkList from '~/utils/useParkList';
-import useEventSource from '~/utils/useEventSource';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUserId(request);
@@ -128,28 +127,9 @@ export default function Index() {
   >({});
 
   // Use our custom hook for park list data with automatic refresh
-  const { parks: parksWithVisitors, refresh: refreshParks } = useParkList();
+  const { parks: parksWithVisitors } = useParkList();
 
-  // Subscribe to real-time check-in events
-  const handleCheckinChanged = useCallback(
-    (event: MessageEvent) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data && data.parksWithVisitors) {
-          // Data will be automatically updated by SWR
-          // This is just a trigger to ensure immediate refresh
-          refreshParks();
-        }
-      } catch (error) {
-        // Silent error - fallback to regular polling
-      }
-    },
-    [refreshParks]
-  );
-
-  // Connect to SSE for real-time updates
-  // Support both routing styles (v6 folder-based and v7 dot-notation)
-  useEventSource('/api/events', 'checkin:changed', handleCheckinChanged);
+  // Real-time updates will be implemented with polling later
 
   const visitorCheckinMap = new Map<string, string | null>();
   visitors.forEach((visitor: Visitor & { checkins: Checkin[] }) => {
