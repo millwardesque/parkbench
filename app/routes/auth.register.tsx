@@ -14,7 +14,7 @@ import { getSession, commitSession } from '~/lib/session.server';
 import { withRateLimit } from '~/utils/limiter.server';
 
 const inputClassName =
-  'w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-white';
+  'w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-white';
 
 // Define the validation schema for the registration form
 const RegisterSchema = z.object({
@@ -186,7 +186,7 @@ export default function RegisterRoute() {
           </div>
           <button
             type="submit"
-            className="w-full px-4 py-2 mt-6 font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            className="w-full px-4 py-2 mt-6 font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
             Register
           </button>

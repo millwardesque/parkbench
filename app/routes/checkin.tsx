@@ -213,7 +213,7 @@ export default function CheckInPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
+      <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <h1 className="text-3xl font-bold text-gray-900">
             Check-in Visitors
@@ -222,7 +222,7 @@ export default function CheckInPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="bg-white shadow rounded-lg p-6">
+        <div className="bg-white shadow-sm rounded-lg p-6">
           {/* Email verification banner removed as part of WBS-62 */}
 
           {actionData?.errors && 'form' in actionData.errors && (
@@ -266,7 +266,7 @@ export default function CheckInPage() {
                           value={visitor.id}
                           checked={selectedVisitorIds.includes(visitor.id)}
                           onChange={() => handleVisitorChange(visitor.id)}
-                          className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          className="h-4 w-4 text-blue-600 border-gray-300 rounded-sm focus:ring-blue-500"
                           aria-labelledby={`visitor-${visitor.id}-name`}
                         />
                         <label
@@ -299,7 +299,7 @@ export default function CheckInPage() {
                     name="locationId"
                     value={locationId}
                     onChange={(e) => setLocationId(e.target.value)}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
                   >
                     <option value="" disabled>
                       Select a park...
@@ -330,7 +330,7 @@ export default function CheckInPage() {
                     name="durationMinutes"
                     value={durationMinutes}
                     onChange={(e) => setDurationMinutes(Number(e.target.value))}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
                   >
                     <option value="30">30 minutes</option>
                     <option value="60">1 hour</option>
@@ -350,7 +350,7 @@ export default function CheckInPage() {
                 <div className="flex justify-between pt-4">
                   <a
                     href="/"
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
                     Cancel
                   </a>
@@ -361,7 +361,7 @@ export default function CheckInPage() {
                       selectedVisitorIds.length === 0 ||
                       !locationId
                     }
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 disabled:cursor-not-allowed"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-xs text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? 'Checking in...' : 'Check In'}
                   </button>

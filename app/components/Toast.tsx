@@ -45,12 +45,12 @@ export function Toast({ message, type, duration, onClose }: ToastProps) {
       aria-live="assertive"
     >
       <div className="flex items-center">
-        <div className="flex-grow">
+        <div className="grow">
           <p className="text-sm font-medium">{message}</p>
         </div>
         <button
           type="button"
-          className="ml-4 text-gray-500 hover:text-gray-700 focus:outline-none"
+          className="ml-4 text-gray-500 hover:text-gray-700 focus:outline-hidden"
           onClick={() => {
             setVisible(false);
             if (onClose) onClose();

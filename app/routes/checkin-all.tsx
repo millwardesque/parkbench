@@ -45,7 +45,7 @@ export default function CheckinAllForm() {
     <Form method="post">
       <button
         type="submit"
-        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow"
+        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-sm shadow-sm"
       >
         Check In Everyone
       </button>

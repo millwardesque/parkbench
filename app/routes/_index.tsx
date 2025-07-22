@@ -237,7 +237,7 @@ export default function Index() {
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
               Your Visitors
             </h2>
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
               <ul className="divide-y divide-gray-200">
                 {visitors.map((visitor: Visitor & { checkins: Checkin[] }) => {
                   const isCheckedIn = visitor.checkins.length > 0;
@@ -280,7 +280,7 @@ export default function Index() {
                             />
                             <button
                               type="submit"
-                              className="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                              className="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                             >
                               Check Out
                             </button>
@@ -326,7 +326,7 @@ export default function Index() {
                             <button
                               type="submit"
                               disabled={!selectedLocations[visitor.id]}
-                              className="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-green-300 disabled:cursor-not-allowed"
+                              className="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-green-300 disabled:cursor-not-allowed"
                             >
                               Check In
                             </button>
@@ -342,7 +342,7 @@ export default function Index() {
           <section>
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Parks</h2>
             <div
-              className="bg-white rounded-lg shadow overflow-hidden"
+              className="bg-white rounded-lg shadow-sm overflow-hidden"
               aria-live="polite"
               aria-atomic="true"
             >
@@ -366,7 +366,7 @@ export default function Index() {
                   <input type="hidden" name="csrf" value={csrf} />
                   <button
                     type="submit"
-                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                     aria-label="Check in all visitors at once"
                   >
                     Check-in Everyone
@@ -382,7 +382,7 @@ export default function Index() {
                   <input type="hidden" name="csrf" value={csrf} />
                   <button
                     type="submit"
-                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                     aria-label="Check out all visitors at once"
                   >
                     Check-out Everyone

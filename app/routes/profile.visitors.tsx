@@ -102,20 +102,20 @@ export default function VisitorsRoute() {
         <Form method="post" className="flex items-center gap-4">
           <input type="hidden" name="csrf" value={csrf} />
           <input type="hidden" name="intent" value="create" />
-          <label htmlFor="name" className="flex-grow">
+          <label htmlFor="name" className="grow">
             <span className="sr-only">Visitor Name</span>
             <input
               type="text"
               id="name"
               name="name"
               placeholder="Visitor Name"
-              className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              className="w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500"
               required
             />
           </label>
           <button
             type="submit"
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-blue-500"
           >
             Add Visitor
           </button>
@@ -138,7 +138,7 @@ export default function VisitorsRoute() {
                     <input type="hidden" name="csrf" value={csrf} />
                     <input type="hidden" name="intent" value="update" />
                     <input type="hidden" name="visitorId" value={visitor.id} />
-                    <div className="flex-grow">
+                    <div className="grow">
                       <label htmlFor={`name-${visitor.id}`}>
                         <span className="sr-only">Visitor Name</span>
                         <input
@@ -146,21 +146,21 @@ export default function VisitorsRoute() {
                           id={`name-${visitor.id}`}
                           name="name"
                           defaultValue={visitor.name}
-                          className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          className="w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500"
                           required
                         />
                       </label>
                     </div>
                     <button
                       type="submit"
-                      className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500"
+                      className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500"
                     >
                       Save
                     </button>
                     <button
                       type="button"
                       onClick={() => setEditingVisitorId(null)}
-                      className="rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-800 shadow-sm hover:bg-gray-300"
+                      className="rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-800 shadow-xs hover:bg-gray-300"
                     >
                       Cancel
                     </button>

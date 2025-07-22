@@ -112,7 +112,7 @@ export default function SignInRoute() {
               Email
               <input
                 {...getInputProps(fields.email, { type: 'email' })}
-                className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-xs focus:ring-indigo-500 focus:border-indigo-500"
               />
             </label>
             <div id={fields.email.errorId} className="text-sm text-red-600">
@@ -127,7 +127,7 @@ export default function SignInRoute() {
         ) : (
           <button
             type="submit"
-            className="w-full px-4 py-2 mt-6 font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            className="w-full px-4 py-2 mt-6 font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
             Send Magic Link
           </button>

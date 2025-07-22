@@ -1,0 +1,296 @@
+@import 'tailwindcss';
+
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 14px;
+  --background: #fafffa;
+  --foreground: #1a3a1a;
+  --card: #ffffff;
+  --card-foreground: #1a3a1a;
+  --popover: #ffffff;
+  --popover-foreground: #1a3a1a;
+  --primary: #2d8f47;
+  --primary-foreground: #ffffff;
+  --secondary: #e8f5e8;
+  --secondary-foreground: #1a3a1a;
+  --muted: #f0f8f0;
+  --muted-foreground: #5a7c5a;
+  --accent: #a8d8a8;
+  --accent-foreground: #1a3a1a;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #c8e6c8;
+  --input: transparent;
+  --input-background: #f8fcf8;
+  --switch-background: #c8e6c8;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #2d8f47;
+  --chart-1: #2d8f47;
+  --chart-2: #4caf50;
+  --chart-3: #66bb6a;
+  --chart-4: #81c784;
+  --chart-5: #a5d6a7;
+  --radius: 1.2rem;
+  --sidebar: #f8fcf8;
+  --sidebar-foreground: #1a3a1a;
+  --sidebar-primary: #2d8f47;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e8f5e8;
+  --sidebar-accent-foreground: #1a3a1a;
+  --sidebar-border: #c8e6c8;
+  --sidebar-ring: #2d8f47;
+}
+
+.dark {
+  --background: #0d1f0d;
+  --foreground: #e8f5e8;
+  --card: #1a3a1a;
+  --card-foreground: #e8f5e8;
+  --popover: #1a3a1a;
+  --popover-foreground: #e8f5e8;
+  --primary: #4caf50;
+  --primary-foreground: #0d1f0d;
+  --secondary: #2d5a2d;
+  --secondary-foreground: #e8f5e8;
+  --muted: #2d5a2d;
+  --muted-foreground: #a8d8a8;
+  --accent: #2d5a2d;
+  --accent-foreground: #e8f5e8;
+  --destructive: #dc2626;
+  --destructive-foreground: #e8f5e8;
+  --border: #2d5a2d;
+  --input: #2d5a2d;
+  --ring: #4caf50;
+  --chart-1: #4caf50;
+  --chart-2: #66bb6a;
+  --chart-3: #81c784;
+  --chart-4: #a5d6a7;
+  --chart-5: #c8e6c8;
+  --sidebar: #1a3a1a;
+  --sidebar-foreground: #e8f5e8;
+  --sidebar-primary: #4caf50;
+  --sidebar-primary-foreground: #0d1f0d;
+  --sidebar-accent: #2d5a2d;
+  --sidebar-accent-foreground: #e8f5e8;
+  --sidebar-border: #2d5a2d;
+  --sidebar-ring: #4caf50;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family:
+      'Inter',
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      'Roboto',
+      sans-serif;
+  }
+}
+
+/* Hand-drawn aesthetic classes */
+@layer components {
+  .sketchy-border {
+    border-radius: 15px 20px 18px 16px / 20px 15px 25px 18px;
+    border: 2px solid var(--color-border);
+    position: relative;
+  }
+
+  .sketchy-border::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border: 1px solid var(--color-border);
+    border-radius: 18px 15px 22px 19px / 16px 25px 17px 20px;
+    opacity: 0.3;
+    z-index: -1;
+  }
+
+  .wiggle {
+    animation: wiggle 2s ease-in-out infinite;
+  }
+
+  .bounce-gentle {
+    animation: bounce-gentle 3s ease-in-out infinite;
+  }
+
+  .handwritten {
+    font-family: 'Caveat', cursive;
+  }
+
+  .park-card {
+    background: var(--color-card);
+    border-radius: 15px 20px 18px 16px / 20px 15px 25px 18px;
+    border: 2px solid var(--color-border);
+    box-shadow:
+      0 4px 8px rgba(45, 143, 71, 0.1),
+      0 2px 4px rgba(45, 143, 71, 0.05);
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .park-card:hover {
+    transform: rotate(0.5deg) scale(1.02);
+    box-shadow:
+      0 8px 16px rgba(45, 143, 71, 0.15),
+      0 4px 8px rgba(45, 143, 71, 0.1);
+  }
+
+  .kid-bubble {
+    background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+    border-radius: 12px 18px 15px 20px / 18px 12px 20px 15px;
+    border: 1.5px solid var(--color-accent);
+    position: relative;
+  }
+
+  .kid-bubble::after {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    border: 1px solid var(--color-accent);
+    border-radius: 15px 12px 18px 16px / 20px 18px 14px 19px;
+    opacity: 0.4;
+    z-index: -1;
+  }
+}
+
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(0.5deg);
+  }
+  75% {
+    transform: rotate(-0.5deg);
+  }
+}
+
+@keyframes bounce-gentle {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+/**
+ * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
+ */
+@layer base {
+  :where(:not(:has([class*=' text-']), :not(:has([class^='text-'])))) {
+    h1 {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+      font-family: 'Caveat', cursive;
+    }
+
+    h2 {
+      font-size: var(--text-xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+      font-family: 'Caveat', cursive;
+    }
+
+    h3 {
+      font-size: var(--text-lg);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h4 {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    p {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+    }
+
+    label {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    button {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    input {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+    }
+  }
+}
+
+html {
+  font-size: var(--font-size);
+}

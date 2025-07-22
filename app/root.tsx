@@ -18,7 +18,7 @@ import { csrf, getUserId } from '~/utils/session.server';
 import { ToastFromHeaders } from './components/Toast';
 import Navigation from './components/Navigation';
 
-import './tailwind.css';
+import './global.css';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const [token, cookieHeader] = await csrf.commitToken(request);

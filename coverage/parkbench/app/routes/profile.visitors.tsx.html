@@ -561,20 +561,20 @@ export async function action({ request }: ActionFunctionArgs) {
 <span class="cstat-no" title="statement not covered" >        &lt;h3 className="text-lg font-semibold"&gt;Add a new visitor&lt;/h3&gt;</span>
 <span class="cstat-no" title="statement not covered" >        &lt;Form method="post" className="mt-2 flex items-center gap-4"&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;input type="hidden" name="intent" value="create" /&gt;</span>
-<span class="cstat-no" title="statement not covered" >          &lt;label htmlFor="name" className="flex-grow"&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;label htmlFor="name" className="grow"&gt;</span>
 <span class="cstat-no" title="statement not covered" >            &lt;span className="sr-only"&gt;Visitor Name&lt;/span&gt;</span>
 <span class="cstat-no" title="statement not covered" >            &lt;input</span>
 <span class="cstat-no" title="statement not covered" >              type="text"</span>
 <span class="cstat-no" title="statement not covered" >              id="name"</span>
 <span class="cstat-no" title="statement not covered" >              name="name"</span>
 <span class="cstat-no" title="statement not covered" >              placeholder="Visitor Name"</span>
-<span class="cstat-no" title="statement not covered" >              className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"</span>
+<span class="cstat-no" title="statement not covered" >              className="w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500"</span>
 <span class="cstat-no" title="statement not covered" >              required</span>
 <span class="cstat-no" title="statement not covered" >            /&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;/label&gt;</span>
 <span class="cstat-no" title="statement not covered" >          &lt;button</span>
 <span class="cstat-no" title="statement not covered" >            type="submit"</span>
-<span class="cstat-no" title="statement not covered" >            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"</span>
+<span class="cstat-no" title="statement not covered" >            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-blue-500"</span>
 <span class="cstat-no" title="statement not covered" >          &gt;</span>
             Add Visitor
 <span class="cstat-no" title="statement not covered" >          &lt;/button&gt;</span>
@@ -596,7 +596,7 @@ export async function action({ request }: ActionFunctionArgs) {
                   &gt;
 <span class="cstat-no" title="statement not covered" >                    &lt;input type="hidden" name="intent" value="update" /&gt;</span>
 <span class="cstat-no" title="statement not covered" >                    &lt;input type="hidden" name="visitorId" value={visitor.id} /&gt;</span>
-<span class="cstat-no" title="statement not covered" >                    &lt;div className="flex-grow"&gt;</span>
+<span class="cstat-no" title="statement not covered" >                    &lt;div className="grow"&gt;</span>
 <span class="cstat-no" title="statement not covered" >                      &lt;label htmlFor={`name-${visitor.id}`}&gt;</span>
 <span class="cstat-no" title="statement not covered" >                        &lt;span className="sr-only"&gt;Visitor Name&lt;/span&gt;</span>
 <span class="cstat-no" title="statement not covered" >                        &lt;input</span>
@@ -604,21 +604,21 @@ export async function action({ request }: ActionFunctionArgs) {
 <span class="cstat-no" title="statement not covered" >                          id={`name-${visitor.id}`}</span>
 <span class="cstat-no" title="statement not covered" >                          name="name"</span>
 <span class="cstat-no" title="statement not covered" >                          defaultValue={visitor.name}</span>
-<span class="cstat-no" title="statement not covered" >                          className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"</span>
+<span class="cstat-no" title="statement not covered" >                          className="w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500"</span>
 <span class="cstat-no" title="statement not covered" >                          required</span>
 <span class="cstat-no" title="statement not covered" >                        /&gt;</span>
 <span class="cstat-no" title="statement not covered" >                      &lt;/label&gt;</span>
 <span class="cstat-no" title="statement not covered" >                    &lt;/div&gt;</span>
 <span class="cstat-no" title="statement not covered" >                    &lt;button</span>
 <span class="cstat-no" title="statement not covered" >                      type="submit"</span>
-<span class="cstat-no" title="statement not covered" >                      className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500"</span>
+<span class="cstat-no" title="statement not covered" >                      className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500"</span>
 <span class="cstat-no" title="statement not covered" >                    &gt;</span>
                       Save
 <span class="cstat-no" title="statement not covered" >                    &lt;/button&gt;</span>
 <span class="cstat-no" title="statement not covered" >                    &lt;button</span>
 <span class="cstat-no" title="statement not covered" >                      type="button"</span>
 <span class="cstat-no" title="statement not covered" >                      onClick={() =&gt; setEditingVisitorId(null)}</span>
-<span class="cstat-no" title="statement not covered" >                      className="rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-800 shadow-sm hover:bg-gray-300"</span>
+<span class="cstat-no" title="statement not covered" >                      className="rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-800 shadow-xs hover:bg-gray-300"</span>
 <span class="cstat-no" title="statement not covered" >                    &gt;</span>
                       Cancel
 <span class="cstat-no" title="statement not covered" >                    &lt;/button&gt;</span>
