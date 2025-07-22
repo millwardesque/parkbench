@@ -1,6 +1,25 @@
 # Parkbench!
 
-A web app for checking in visitors at parks and seeing who else is at nearby parks.
+A mobile-first web app for parents to check-in their kids at nearby parks, and to see which other kids are at nearby parks
+
+User stories:
+
+1. As a parent, I want to use my mobile device to check-in one or more of my kids at a nearby park for a given duration of time.
+2. As a parent, I want to use my mobile device to see which other kids are at nearby parks and how long they've been there / will be there so that I can decide which one to visit
+
+Pages:
+
+1. Home:
+   - A check-in form that allows me to choose a park, a duration, and one or more of my kids to check in
+   - A list of nearby parks, each with a list of checked-in kids, their check-in times, and their estimated checkout time.
+   - A mass check-out button that allows me to check out all checked-in kids
+2. Visitors
+   - A list of my kids, with an inline form to edit their name or delete them
+   - An inline form to add a new visitor containing a field for their name
+3. Sign-in
+   - A form to sign in with email
+4. Registration
+   - A form to register with email and name, and a field for the user to enter each of their kids' names
 
 It should be noted that the code quality here is abysmal, this project is an experiment in complete vibe-coding to understand what works, what doesn't, and what's possible.
 

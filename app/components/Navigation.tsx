@@ -41,26 +41,17 @@ export default function Navigation({ isAuthenticated }: NavigationProps) {
               </Link>
 
               {isAuthenticated && (
-                <>
-                  <Link
-                    to="/checkin"
-                    className="px-4 py-2 rounded-md text-sm font-medium bg-white text-blue-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white"
-                    aria-label="Check in a visitor to a park"
-                  >
-                    Check-in
-                  </Link>
-                  <Link
-                    to="/profile/visitors"
-                    className={`px-3 py-2 rounded-md text-sm font-medium ${
-                      location.pathname.startsWith('/visitor')
-                        ? 'bg-blue-700 text-white'
-                        : 'text-white hover:bg-blue-500'
-                    }`}
-                    aria-label="View your visitors"
-                  >
-                    My Visitors
-                  </Link>
-                </>
+                <Link
+                  to="/profile/visitors"
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                    location.pathname.startsWith('/visitor')
+                      ? 'bg-blue-700 text-white'
+                      : 'text-white hover:bg-blue-500'
+                  }`}
+                  aria-label="View your visitors"
+                >
+                  My Visitors
+                </Link>
               )}
 
               {!isAuthenticated ? (
@@ -153,26 +144,17 @@ export default function Navigation({ isAuthenticated }: NavigationProps) {
           </Link>
 
           {isAuthenticated && (
-            <>
-              <Link
-                to="/checkin"
-                className="block px-4 py-2 rounded-md text-base font-medium bg-white text-blue-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white"
-                aria-label="Check in a visitor to a park"
-              >
-                Check-in
-              </Link>
-              <Link
-                to="/profile/visitors"
-                className={`block px-3 py-2 rounded-md text-base font-medium ${
-                  location.pathname.startsWith('/visitor')
-                    ? 'bg-blue-700 text-white'
-                    : 'text-white hover:bg-blue-500'
-                }`}
-                aria-label="View your visitors"
-              >
-                My Visitors
-              </Link>
-            </>
+            <Link
+              to="/profile/visitors"
+              className={`block px-3 py-2 rounded-md text-base font-medium ${
+                location.pathname.startsWith('/visitor')
+                  ? 'bg-blue-700 text-white'
+                  : 'text-white hover:bg-blue-500'
+              }`}
+              aria-label="View your visitors"
+            >
+              My Visitors
+            </Link>
           )}
 
           {!isAuthenticated ? (

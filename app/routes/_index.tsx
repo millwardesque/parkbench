@@ -1,5 +1,5 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/node';
-import { Form, Link, useLoaderData } from '@remix-run/react';
+import { Form, useLoaderData } from '@remix-run/react';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';
 import { useState } from 'react';
 import { requireUserId } from '~/utils/session.server';
@@ -161,16 +161,7 @@ function ParkList({
     <ul className="divide-y divide-gray-200">
       {normalizedParks.map((park) => (
         <li key={park.id?.toString()} className="px-6 py-4">
-          <div className="flex justify-between items-center mb-2">
-            <p className="font-medium text-gray-900">{park.name?.toString()}</p>
-            <Link
-              to={`/checkin?parkId=${encodeURIComponent(park.id?.toString() || '')}`}
-              className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              aria-label={`Check in a visitor to ${park.name?.toString()}`}
-            >
-              Check-in visitor
-            </Link>
-          </div>
+          <h3 className="font-medium text-gray-900">{park.name?.toString()}</h3>
           <div className="flex flex-wrap gap-2">
             {park.visitors.map((visitor: Record<string, unknown>) => {
               // Safely extract checkin data with proper type checking
@@ -364,18 +355,8 @@ export default function Index() {
               />
             </div>
 
-            {/* Add navigation CTA buttons for Check-in and bulk operations */}
             {locations.length > 0 && (
               <div className="mt-6 text-center space-x-4">
-                <Link
-                  to="/checkin"
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  aria-label="Check in a visitor to a park"
-                >
-                  Check-in
-                </Link>
-
-                {/* Mass check-in button (WBS-60) */}
                 <Form
                   action="/checkin-all"
                   method="post"
@@ -392,7 +373,6 @@ export default function Index() {
                   </button>
                 </Form>
 
-                {/* Mass check-out button (WBS-61) */}
                 <Form
                   action="/checkout-all"
                   method="post"
