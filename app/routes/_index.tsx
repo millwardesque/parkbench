@@ -1,3 +1,5 @@
+import { Trees } from 'lucide-react';
+
 import { type LoaderFunctionArgs } from '@remix-run/node';
 import { Form, useLoaderData } from '@remix-run/react';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';
@@ -192,9 +194,16 @@ export default function Index() {
             </div>
           </section>
           <section>
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              Parks nearby
-            </h2>
+            <div className="text-center">
+              <h2 className="handwritten text-2xl text-primary flex items-center justify-center gap-2">
+                <Trees className="w-6 h-6" />
+                Mahogany Parks
+                <Trees className="w-6 h-6" />
+              </h2>
+              <p className="text-muted-foreground text-sm mt-1">
+                Find your friends! 🔍
+              </p>
+            </div>
             <div
               className="bg-white rounded-lg shadow-sm overflow-hidden"
               aria-live="polite"

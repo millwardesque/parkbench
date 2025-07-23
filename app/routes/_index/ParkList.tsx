@@ -10,14 +10,6 @@ type ParkListProps = {
  * A list of parks and their current visitors
  */
 export default function ParkList({ parks, myUserId }: ParkListProps) {
-  if (parks.length === 0) {
-    return (
-      <div className="px-6 py-4 text-center text-gray-500">
-        No one is currently checked in at any park
-      </div>
-    );
-  }
-
   return (
     <ul className="divide-y divide-gray-200">
       {parks.map((park) => (

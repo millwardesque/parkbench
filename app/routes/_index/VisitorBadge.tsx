@@ -35,7 +35,7 @@ export default function VisitorBadge({
         </div>
 
         <div className="text-right text-sm">
-          <div className="flex items-center gap-1 text-muted-foreground mb-1">
+          <div className="flex items-center justify-end gap-1 text-muted-foreground mb-1">
             <Clock className="w-3 h-3" />
             <span>since {formatCheckInTime(checkInAt)}</span>
           </div>
@@ -70,6 +70,6 @@ function formatTimeRemaining(checkoutAt: Date) {
   );
 
   if (remaining === 0) return '🏃‍♀️ Leaving soon!';
-  if (remaining < 15) return `⏰ ${remaining} min left`;
-  return `🎮 ${remaining} min of fun`;
+  if (remaining < 15) return `⏰ ${remaining} mins left`;
+  return `⚽ ${remaining} mins of fun left`;
 }
