@@ -50,8 +50,6 @@ export const action = withRateLimit(async ({ request }: ActionFunctionArgs) => {
 
   const user = await prisma.user.findUnique({ where: { email } });
 
-  console.log('[CPM] Sign-in action called', email, submission, user); // @DEBUG
-
   // To prevent email enumeration, we always act like the request was successful.
   // If the user exists, we send the email. If not, we do nothing.
   if (user) {

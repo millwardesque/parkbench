@@ -1,16 +1,14 @@
-import { json, type LoaderFunctionArgs } from '@remix-run/node';
+import { type LoaderFunctionArgs } from '@remix-run/node';
 import { Form, useLoaderData } from '@remix-run/react';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';
 import { useState } from 'react';
 import { requireUserId } from '~/utils/session.server';
 import prisma from '~/utils/db.server';
-import {
-  type ParkWithVisitors,
-  getCachedActiveCheckins,
-} from '~/utils/checkin.server';
+import { getCachedActiveCheckins } from '~/utils/checkin.server';
 import type { Location, Visitor, Checkin } from '@prisma/client';
 import useParkList from '~/utils/useParkList';
-import VisitorBadge from './_index/VisitorBadge';
+
+import ParkList from './_index/ParkList';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUserId(request);
@@ -38,80 +36,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
     url.searchParams.has('_data') &&
     url.searchParams.get('_data')?.includes('routes/_index')
   ) {
-    return json({ userId, parksWithVisitors });
+    return { userId, parksWithVisitors };
   }
 
-  return json({ locations, userId, visitors, parksWithVisitors });
-}
-
-/**
- * Component to display the list of parks with visitors
- */
-function ParkList({
-  parks,
-  userId,
-}: {
-  parks: ParkWithVisitors[] | Array<Record<string, unknown>>;
-  userId: string;
-}) {
-  // Convert serialized data back to the expected format if needed
-  const normalizedParks = parks.map((park) => ({
-    id: park.id,
-    name: park.name,
-    visitors: Array.isArray(park.visitors)
-      ? park.visitors.map((v: Record<string, unknown>) => ({
-          id: v.id,
-          name: v.name,
-          checkin: v.checkin,
-        }))
-      : [],
-  }));
-  if (normalizedParks.length === 0) {
-    return (
-      <div className="px-6 py-4 text-center text-gray-500">
-        No one is currently checked in at any park
-      </div>
-    );
-  }
-
-  return (
-    <ul className="divide-y divide-gray-200">
-      {normalizedParks.map((park) => (
-        <li key={park.id?.toString()} className="px-6 py-4">
-          <h3 className="font-medium text-gray-900">{park.name?.toString()}</h3>
-          <div className="flex flex-wrap gap-2">
-            {park.visitors.map((visitor: Record<string, unknown>) => {
-              // Safely extract checkin data with proper type checking
-              const checkinData =
-                visitor.checkin && typeof visitor.checkin === 'object'
-                  ? {
-                      checkin_at: new Date(
-                        (visitor.checkin as Record<string, unknown>)
-                          .checkin_at as Date | string
-                      ),
-                      est_checkout_at: new Date(
-                        (visitor.checkin as Record<string, unknown>)
-                          .est_checkout_at as Date | string
-                      ),
-                    }
-                  : null;
-
-              return (
-                <VisitorBadge
-                  key={visitor.id?.toString()}
-                  name={visitor.name?.toString() || ''}
-                  checkInAt={checkinData!.checkin_at}
-                  estimatedCheckoutAt={checkinData!.est_checkout_at}
-                  isMyVisitor={visitor.owner_id === userId}
-                  parentName={visitor.parent_name?.toString() || ''}
-                />
-              );
-            })}
-          </div>
-        </li>
-      ))}
-    </ul>
-  );
+  return { locations, userId, visitors, parksWithVisitors };
 }
 
 export default function Index() {
@@ -144,7 +72,10 @@ export default function Index() {
       const location = locations.find(
         (loc: Location) => loc.id === visitor.checkins[0].location_id
       );
-      visitorCheckinMap.set(visitor.id, location?.name ?? 'Unknown Location');
+      visitorCheckinMap.set(
+        visitor.id,
+        location?.nickname ?? location?.name ?? 'Unknown Location'
+      );
     } else {
       visitorCheckinMap.set(visitor.id, null);
     }
@@ -240,7 +171,7 @@ export default function Index() {
                               </option>
                               {locations.map((location: Location) => (
                                 <option key={location.id} value={location.id}>
-                                  {location.name}
+                                  {location.nickname ?? location.name}
                                 </option>
                               ))}
                             </select>
@@ -261,7 +192,9 @@ export default function Index() {
             </div>
           </section>
           <section>
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Parks</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Parks nearby
+            </h2>
             <div
               className="bg-white rounded-lg shadow-sm overflow-hidden"
               aria-live="polite"
@@ -273,7 +206,7 @@ export default function Index() {
                     ? parksWithVisitors
                     : initialParksWithVisitors || []
                 }
-                userId={userId}
+                myUserId={userId}
               />
             </div>
 

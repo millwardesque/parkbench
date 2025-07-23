@@ -12,6 +12,8 @@ export interface ActiveVisitorCheckin {
   id: string;
   name: string;
   checkin: Checkin;
+  owner_id: string;
+  parent_name: string;
 }
 
 /**
@@ -20,6 +22,7 @@ export interface ActiveVisitorCheckin {
 export interface ParkWithVisitors {
   id: string;
   name: string;
+  nickname: string | null;
   visitors: ActiveVisitorCheckin[];
 }
 
@@ -32,12 +35,6 @@ export async function getActiveCheckins(): Promise<ParkWithVisitors[]> {
   const locations = await prisma.location.findMany({
     where: {
       deleted_at: null,
-      checkins: {
-        some: {
-          actual_checkout_at: null,
-          deleted_at: null,
-        },
-      },
     },
     include: {
       checkins: {
@@ -46,7 +43,11 @@ export async function getActiveCheckins(): Promise<ParkWithVisitors[]> {
           deleted_at: null,
         },
         include: {
-          visitor: true,
+          visitor: {
+            include: {
+              owner: true,
+            },
+          },
         },
       },
     },
@@ -59,6 +60,8 @@ export async function getActiveCheckins(): Promise<ParkWithVisitors[]> {
       id: checkin.visitor.id,
       name: checkin.visitor.name,
       checkin,
+      owner_id: checkin.visitor.owner_id,
+      parent_name: checkin.visitor.owner.name,
     }));
 
     // Sort visitors alphabetically by name
@@ -67,6 +70,7 @@ export async function getActiveCheckins(): Promise<ParkWithVisitors[]> {
     return {
       id: location.id,
       name: location.name,
+      nickname: location.nickname,
       visitors,
     };
   });

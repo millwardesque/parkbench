@@ -28,7 +28,7 @@ export default function VisitorBadge({
           <p className="text-sm text-muted-foreground flex items-center gap-1">
             <span>with</span>
             <span className="handwritten">
-              {isMyVisitor ? parentName : 'You'}
+              {isMyVisitor ? 'You' : parentName}
             </span>
             {isMyVisitor && <span className="text-primary">✨</span>}
           </p>
