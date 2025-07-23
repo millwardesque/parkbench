@@ -40,6 +40,7 @@ module.exports = {
     // Disable no-use-before-define rule
     'no-use-before-define': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
+    'react/require-default-props': 'off',
   },
 
   overrides: [

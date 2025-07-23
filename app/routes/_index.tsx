@@ -10,6 +10,7 @@ import {
 } from '~/utils/checkin.server';
 import type { Location, Visitor, Checkin } from '@prisma/client';
 import useParkList from '~/utils/useParkList';
+import VisitorBadge from './_index/VisitorBadge';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUserId(request);
@@ -37,96 +38,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
     url.searchParams.has('_data') &&
     url.searchParams.get('_data')?.includes('routes/_index')
   ) {
-    return json({ parksWithVisitors });
+    return json({ userId, parksWithVisitors });
   }
 
-  return json({ locations, visitors, parksWithVisitors });
-}
-
-/**
- * Component to display a visitor badge with duration information
- */
-function VisitorBadge({
-  name,
-  checkin,
-}: {
-  name: string;
-  checkin: {
-    checkin_at: Date | string;
-    est_checkout_at?: Date | string;
-    actual_checkout_at?: Date | string | null;
-  } | null;
-}) {
-  // If no checkin data is provided, just show the name
-  if (!checkin) {
-    return (
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-        {name}
-      </span>
-    );
-  }
-
-  // Parse dates to ensure they are Date objects
-  const checkinTime =
-    checkin.checkin_at instanceof Date
-      ? checkin.checkin_at
-      : new Date(checkin.checkin_at);
-
-  // Handle est_checkout_at with simpler conditional logic
-  let estCheckoutTime = null;
-  if (checkin.est_checkout_at) {
-    estCheckoutTime =
-      checkin.est_checkout_at instanceof Date
-        ? checkin.est_checkout_at
-        : new Date(checkin.est_checkout_at);
-  }
-
-  // Current time for calculations
-  const now = new Date();
-
-  // Calculate time since check-in
-  const elapsedMs = now.getTime() - checkinTime.getTime();
-  const elapsedMinutes = Math.floor(elapsedMs / (1000 * 60));
-
-  // Format elapsed time
-  let elapsedText = '';
-  if (elapsedMinutes < 60) {
-    elapsedText = `${elapsedMinutes}m`;
-  } else {
-    const hours = Math.floor(elapsedMinutes / 60);
-    const mins = elapsedMinutes % 60;
-    elapsedText = `${hours}h${mins ? ` ${mins}m` : ''}`;
-  }
-
-  // Calculate remaining time if est_checkout_at is available
-  let remainingText = '';
-  if (estCheckoutTime) {
-    const remainingMs = estCheckoutTime.getTime() - now.getTime();
-
-    // Only show remaining time if it's positive
-    if (remainingMs > 0) {
-      const remainingMinutes = Math.floor(remainingMs / (1000 * 60));
-
-      if (remainingMinutes < 60) {
-        remainingText = `${remainingMinutes}m left`;
-      } else {
-        const hours = Math.floor(remainingMinutes / 60);
-        const mins = remainingMinutes % 60;
-        remainingText = `${hours}h${mins ? ` ${mins}m` : ''} left`;
-      }
-    } else {
-      remainingText = 'Overdue';
-    }
-  }
-
-  return (
-    <span className="inline-flex flex-col items-start px-2.5 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-      <span className="font-semibold">{name}</span>
-      <span className="text-xs text-blue-600">
-        {elapsedText} {remainingText && `• ${remainingText}`}
-      </span>
-    </span>
-  );
+  return json({ locations, userId, visitors, parksWithVisitors });
 }
 
 /**
@@ -134,8 +49,10 @@ function VisitorBadge({
  */
 function ParkList({
   parks,
+  userId,
 }: {
   parks: ParkWithVisitors[] | Array<Record<string, unknown>>;
+  userId: string;
 }) {
   // Convert serialized data back to the expected format if needed
   const normalizedParks = parks.map((park) => ({
@@ -168,14 +85,14 @@ function ParkList({
               const checkinData =
                 visitor.checkin && typeof visitor.checkin === 'object'
                   ? {
-                      checkin_at: (visitor.checkin as Record<string, unknown>)
-                        .checkin_at as Date | string,
-                      est_checkout_at: (
-                        visitor.checkin as Record<string, unknown>
-                      ).est_checkout_at as Date | string | undefined,
-                      actual_checkout_at: (
-                        visitor.checkin as Record<string, unknown>
-                      ).actual_checkout_at as Date | string | null | undefined,
+                      checkin_at: new Date(
+                        (visitor.checkin as Record<string, unknown>)
+                          .checkin_at as Date | string
+                      ),
+                      est_checkout_at: new Date(
+                        (visitor.checkin as Record<string, unknown>)
+                          .est_checkout_at as Date | string
+                      ),
                     }
                   : null;
 
@@ -183,7 +100,10 @@ function ParkList({
                 <VisitorBadge
                   key={visitor.id?.toString()}
                   name={visitor.name?.toString() || ''}
-                  checkin={checkinData}
+                  checkInAt={checkinData!.checkin_at}
+                  estimatedCheckoutAt={checkinData!.est_checkout_at}
+                  isMyVisitor={visitor.owner_id === userId}
+                  parentName={visitor.parent_name?.toString() || ''}
                 />
               );
             })}
@@ -205,6 +125,7 @@ export default function Index() {
       : [];
   const initialParksWithVisitors =
     'parksWithVisitors' in loaderData ? loaderData.parksWithVisitors : [];
+  const userId = 'userId' in loaderData ? loaderData.userId : '';
   const csrf = useAuthenticityToken();
   const [selectedLocations, setSelectedLocations] = useState<
     Record<string, string>
@@ -352,6 +273,7 @@ export default function Index() {
                     ? parksWithVisitors
                     : initialParksWithVisitors || []
                 }
+                userId={userId}
               />
             </div>
 
