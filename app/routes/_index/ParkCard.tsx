@@ -22,10 +22,12 @@ export default function ParkCard({ park, myUserId }: ParkCardProps) {
               </div>
             )}
           </h3>
-          <span className="handwritten text-base">
-            {park.visitors.length} adventurer
-            {park.visitors.length !== 1 ? 's' : ''} playing!
-          </span>
+          {park.visitors.length > 0 && (
+            <span className="handwritten text-base">
+              {park.visitors.length} adventurer
+              {park.visitors.length !== 1 ? 's' : ''} playing!
+            </span>
+          )}
         </div>
       </div>
 

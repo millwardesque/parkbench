@@ -19,10 +19,10 @@ export default function VisitorBadge({
   parentName,
 }: VisitorBadgeProps) {
   return (
-    <div className="kid-bubble p-4">
+    <div className="kid-bubble p-2">
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex mb-1">
             <span className="handwritten text-lg text-primary">{name}</span>
           </div>
           <p className="text-sm text-muted-foreground flex items-center gap-1">
