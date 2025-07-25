@@ -11,7 +11,7 @@ type ParkListProps = {
  */
 export default function ParkList({ parks, myUserId }: ParkListProps) {
   return (
-    <ul className="divide-y divide-gray-200">
+    <ul>
       {parks.map((park) => (
         <li key={park.id?.toString()} className="px-6 py-4">
           <ParkCard myUserId={myUserId} park={park} />

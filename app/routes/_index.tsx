@@ -11,6 +11,7 @@ import type { Location, Visitor, Checkin } from '@prisma/client';
 import useParkList from '~/utils/useParkList';
 
 import ParkList from './_index/ParkList';
+import CheckInCard from './_index/CheckInCard';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUserId(request);
@@ -88,6 +89,11 @@ export default function Index() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <section>
+            <CheckInCard
+              locations={locations}
+              visitors={visitors}
+              refreshParks={refreshParks}
+            />
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
               Your Visitors
             </h2>

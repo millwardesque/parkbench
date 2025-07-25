@@ -1,3 +1,4 @@
+import React from 'react';
 import { type ParkWithVisitors } from '~/utils/checkin.server';
 import VisitorBadge from './VisitorBadge';
 
@@ -9,6 +10,24 @@ export type ParkCardProps = {
 export default function ParkCard({ park, myUserId }: ParkCardProps) {
   const primaryName = park.nickname ? park.nickname : park.name;
   const secondaryName = park.nickname ? park.name : null;
+  const visitors = React.useMemo(
+    () =>
+      park.visitors.sort((a, b) => {
+        const aName = a.name;
+        const aIsMine = a.owner_id === myUserId;
+        const bName = b.name;
+        const bIsMine = b.owner_id === myUserId;
+
+        if (aIsMine && !bIsMine) {
+          return -1;
+        } else if (!aIsMine && bIsMine) {
+          return 1;
+        } else {
+          return aName.localeCompare(bName);
+        }
+      }),
+    [park.visitors, myUserId]
+  );
 
   return (
     <div key={park.name} className="park-card p-5">
@@ -22,16 +41,16 @@ export default function ParkCard({ park, myUserId }: ParkCardProps) {
               </div>
             )}
           </h3>
-          {park.visitors.length > 0 && (
+          {visitors.length > 0 && (
             <span className="handwritten text-base">
-              {park.visitors.length} adventurer
-              {park.visitors.length !== 1 ? 's' : ''} playing!
+              {visitors.length} adventurer
+              {visitors.length !== 1 ? 's' : ''} playing!
             </span>
           )}
         </div>
       </div>
 
-      {park.visitors.length === 0 ? (
+      {visitors.length === 0 ? (
         <div className="text-center py-6 kid-bubble">
           <div className="text-4xl mb-2">🌙</div>
           <p className="text-muted-foreground handwritten text-lg">
@@ -43,7 +62,7 @@ export default function ParkCard({ park, myUserId }: ParkCardProps) {
         </div>
       ) : (
         <div className="space-y-4">
-          {park.visitors.map((visitor) => (
+          {visitors.map((visitor) => (
             <VisitorBadge
               key={visitor.id}
               name={visitor.name}
